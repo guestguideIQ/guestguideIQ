@@ -305,7 +305,10 @@ level, and the cycle stays invisible to consumers.
 
 **What it did not answer, exactly as predicted:** whether any of it matches the
 real API. Every unit is built against hand-written fixtures that have never met
-the deployed backend. That stays open until M1 and M2 land.
+the deployed backend. **M1 and M2 both landed on 2026-09-08** (backend
+`8e77ee8`, PR #19), so the blocker is gone — but the verification itself still
+has not happened, because the suite that would perform it has never run. See F5,
+and see H1: the contract surface it would check roughly doubled on 2026-09-21.
 
 **The override's cost, assessed honestly.** B1 dropped the "thin" third of the
 walking-skeleton mandate and built five complete units before demoing. The
@@ -457,13 +460,25 @@ because both rollback and mid-session asset loads depend on them. No lifecycle
 policy is specified. **Revisit trigger:** `environment-provisioning`. Decide it
 with the rollback runbook, not separately.
 
-### F5 — The live-backend E2E suite cannot run yet
+### F5 — The live-backend E2E suite is now UNBLOCKED, and still has not run
 
 `team.md`'s Q5 answer requires it as the drift detector against hand-written
-fixtures. It is blocked on M1 (signup and guest links both fail) and M2 (no
-origin is allowlisted). **Specified in `cicd-pipeline.md` §5 and deliberately not
-stubbed with an `echo`**, which is the exact anti-pattern `team.md` names in the
-backend's pipeline. **Revisit trigger:** when M1 and M2 land.
+fixtures. ~~It is blocked on M1 (signup and guest links both fail) and M2 (no
+origin is allowlisted).~~ **Both blockers cleared on 2026-09-08** (backend
+`8e77ee8`, PR #19); re-verified against production on 2026-09-21:
+
+- **M1** — `GET /v1/localities/current` returns `404 LOCALITY_NOT_RESOLVED` with
+  no tenant header, and `200` with `X-Locality-Domain: sedona.guestguideiq.com`.
+- **M2** — preflight from `https://app.guestguideiq.com` *and* from
+  `https://sedona.guestguideiq.com` are both reflected, so the suffix rule
+  (`ALLOWED_ORIGIN_SUFFIXES`, `src/lib/corsOrigin.ts`) has removed M2's stated
+  cost: adding a locality is **no longer** a backend deployment.
+
+**Specified in `cicd-pipeline.md` §5 and deliberately not stubbed with an
+`echo`**, which is the exact anti-pattern `team.md` names in the backend's
+pipeline — so its absence is honest. But it is now the largest verification gap
+in the build, and **H1 is exactly what it would have caught**. **Revisit trigger:
+FIRED. This is work now, not a dependency.**
 
 ### F6 — `nfr-design` did not run for eight of nine units
 
@@ -564,6 +579,95 @@ blocking. `npm run verify` — format, lint, type-check, test with coverage, bui
 
 ---
 
+## H. Deployment-state items (added 2026-09-21)
+
+### H1 — Schema v2 shipped with the two halves deployed 1h33m apart
+
+**Schema v2 — guest content** merged into both repos on 2026-09-21: backend
+[#62](https://github.com/guestguideIQ/guestguideiq-app/pull/62) and frontend
+[#32](https://github.com/guestguideIQ/guestguideiq-frontend/pull/32). It is a
+large change on both sides — a new `guestcontext` module, destination themes,
+POI geo, login rate-limiting, and a 737-line migration on the backend; the guest
+place/event/advisory/itinerary surfaces and the whole owner host-curation screen
+on the frontend.
+
+**The two halves did not go live together, and nothing in the pipeline noticed.**
+The frontend `Deploy` workflow runs on push to `main`, so it deployed itself at
+03:04Z. The backend's `deploy-production` job is `workflow_dispatch`-only — a
+deliberate choice (see `cicd-pipeline.md`; GitHub environment protection rules
+are a paid feature on this plan, so a human running the workflow *is* the
+approval gate). CI went green on `main` at 03:23Z and stopped there. Production
+therefore served the schema-v2 frontend against the pre-v2 API until the deploy
+was run manually at 04:56Z and finished 05:15Z.
+
+**What that cost, measured rather than assumed.** Probed against production
+before the deploy:
+
+| Route | Before | After |
+|---|---|---|
+| `GET /v1/properties/:id/area` | `404` Fastify not-found | `401 UNAUTHORIZED` |
+| `POST /v1/properties/:id/places` | `404` Fastify not-found | `401 UNAUTHORIZED` |
+| `GET /v1/properties/:id/listings` | `404` Fastify not-found | `401 UNAUTHORIZED` |
+| `GET /v1/properties/:id/tips` | `404` Fastify not-found | `401 UNAUTHORIZED` |
+| `POST /v1/stays/:token/feedback` | `404` Fastify not-found | `410 LINK_INVALID` |
+| `GET /v1/accounts/me` (control) | `401` | `401` unchanged |
+
+The split in impact is worth keeping, because it was not luck in both halves:
+
+- **The guest surface degraded gracefully by construction.** `GuestGuideView`
+  spreads `area` and `advisories` conditionally on `undefined`, so guests saw the
+  guide without the new sections rather than an error. That is the BR1.4
+  tolerance the contract was written for, doing its job unrehearsed.
+- **The owner curation surface did not.** `getPropertyArea`, `listListings`,
+  `createHostPlace` and `propertyTips` were live in the UI and calling endpoints
+  that returned `404` for an hour and a half.
+
+**The real finding is not the outage, it is that nothing detected it.** Both CI
+suites were green the whole time, because both test against their own fixtures.
+This is precisely the drift F5 exists to catch, and F5 has never run. **Revisit
+trigger:** none — this is a standing property of the two pipelines until either
+F5 runs or the deploy triggers are made symmetric.
+
+**Not a defect, recorded so it is not mistaken for one:** `seedGuestContext.ts`
+and `seedBlueRidge.ts` refuse to run against production by design — they are
+`dev-sample` editorial and fixture data. `backfillListings.ts` is likewise
+local-only, but its work is duplicated inside the migration
+(`ON CONFLICT DO NOTHING`), so production got that backfill from the migration
+itself. No sample data reached production, which is correct.
+
+### H2 — The applied migration cites a document that does not exist
+
+`20260921000000_schema_v2_amended/migration.sql` opens with "See
+`docs/schema-v2-amendments.md`". There is no such file; the document is
+`docs/schema-v2-design.md`.
+
+**It should not be fixed by editing the migration.** Prisma records a checksum
+per applied migration in `_prisma_migrations`, so changing the file after it has
+been applied makes `migrate deploy` fail on drift — trading a wrong comment for
+a broken deploy. The options are to add `docs/schema-v2-amendments.md` as a stub
+pointing at the real document, or to leave it and note the rename where the
+design document itself can be read. **Revisit trigger:** whoever next reads that
+migration and cannot find the document.
+
+### H3 — `cdk deploy` precedes the migration, and `--no-rollback` is set
+
+Pre-existing and already reasoned about in `ci.yml`, recorded here because
+schema v2 is the first change large enough to make the window matter. The
+production job updates the ECS service — putting new code live — **before** the
+migration RunTask, and deploys with `--no-rollback`. For the email migration that
+window was one `ALTER TABLE`; here it was 737 lines including
+`DROP TABLE host_notes`.
+
+It came through clean (migration exit code `0`, smoke test green, no circuit-breaker
+rollback), and the migration was written defensively — `host_notes` is copied into
+`property_listings` before the drop, every insert is `ON CONFLICT DO NOTHING`, and
+RDS PITR is on at 30-day retention. **Cost if wrong:** a mid-migration failure
+leaves new code serving a half-migrated schema with no automatic reversal, and
+recovery is an instance restore rather than a re-run. **Revisit trigger:** the
+next migration that drops or rewrites a table.
+
+---
+
 ## How to use this document
 
 - **Before `infrastructure-design`:** ~~read A1, A2 and A3~~ — **that stage has
@@ -578,5 +682,8 @@ blocking. `npm run verify` — format, lint, type-check, test with coverage, bui
   documentation.
 - **When the backend follow-up is scoped:** read section B and add B1–B4 to
   `US4.1`.
+- **Before trusting a green CI run as evidence the system works:** read H1. Both
+  suites test against their own fixtures, so they agreed with each other while
+  production was broken.
 - **When any of these is settled:** update the owning artifact first, then strike
   the row here. This document is an index, never the source of truth.
