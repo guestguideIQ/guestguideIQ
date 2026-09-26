@@ -1,0 +1,19 @@
+# Formatting scope is the marketing site only — see eslint.config.js for why.
+dist
+.astro
+node_modules
+package-lock.json
+aidlc
+.claude
+docs
+guestguideiq-app
+guestguideiq-frontend
+
+# Vendor artwork from the logo pack, kept byte-identical to the source files.
+public/brand
+public/favicon.svg
+
+# Local scratch files not tracked in this repo.
+*.ps1
+*-ruleset.json
+verify-schema.json
