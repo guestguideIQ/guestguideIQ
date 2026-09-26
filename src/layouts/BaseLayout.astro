@@ -19,7 +19,11 @@ const canonicalURL = new URL(Astro.url.pathname, SITE.url);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#FBF3EA" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1E1410" media="(prefers-color-scheme: dark)" />
     <link rel="canonical" href={canonicalURL} />
 
     <title>{pageTitle}</title>
@@ -31,15 +35,16 @@ const canonicalURL = new URL(Astro.url.pathname, SITE.url);
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
-    <!-- TODO: add public/og-image.jpg (1200x630) once brand visuals exist, then uncomment: -->
-    <!-- <meta property="og:image" content={new URL('/og-image.jpg', SITE.url)} /> -->
-    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Square brand avatar from logo pack A1a. Swap for a 1200x630 og-image.jpg and
+         "summary_large_image" once a wide social card is designed. -->
+    <meta property="og:image" content={new URL('/brand/social-avatar-800.png', SITE.url)} />
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
 
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Instrument+Sans:wght@400;500;600&display=swap"
     />
 
     {ANALYTICS.plausibleDomain && (

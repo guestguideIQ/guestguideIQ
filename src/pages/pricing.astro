@@ -1,0 +1,235 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PricingCards from '../components/PricingCards.astro';
+import WaitlistForm from '../components/WaitlistForm.astro';
+import { UPSELL_FEE } from '../data/pricing';
+
+const upsellIdeas = [
+  'Late check-out',
+  'Early check-in',
+  'Firewood bundles',
+  'Mid-stay cleans',
+  'Welcome baskets',
+  'Local tours and experiences',
+];
+
+const faqs = [
+  {
+    q: 'Is there a long-term contract?',
+    a: 'No. Plans are billed monthly or yearly, and yearly billing gets you roughly two months free.',
+  },
+  {
+    q: 'What happens when a place in my guide closes?',
+    a: 'We check every recommendation on a regular schedule. When a venue closes for good or changes its hours, your guide is updated or the place is flagged, so guests aren’t sent somewhere that no longer exists.',
+  },
+  {
+    q: 'Do my guests need to download an app?',
+    a: 'No. Your guide opens from a single link in any phone browser, and guests can add it to their home screen like an app.',
+  },
+  {
+    q: `How does the ${UPSELL_FEE} upsell fee work?`,
+    a: `When a guest buys an add-on through your guide, payment is processed securely and paid out to you. GuestGuideIQ keeps ${UPSELL_FEE} of that transaction. If you make no sales, you pay no fee.`,
+  },
+  {
+    q: 'I manage more than 10 properties. Which plan fits?',
+    a: 'Agency / PMC is built for operations with 11 or more units. It includes unlimited guides, white-labeling on your own domain, and deeper smart-lock sync, with pricing based on the size of your portfolio. Get in touch and we’ll put a quote together.',
+  },
+];
+---
+
+<BaseLayout
+  title="Pricing"
+  description="GuestGuideIQ plans for solo hosts, boutique portfolios and property management companies, plus a built-in guest upsell storefront."
+>
+  <section class="wrap section intro">
+    <span class="eyebrow">Pricing</span>
+    <h1>Priced as a premium tool, built to pay for itself.</h1>
+    <p class="lead">
+      Every plan includes instant import from your listing and local recommendations that keep
+      themselves up to date. Larger plans add your brand, your domain, and deeper integrations.
+    </p>
+  </section>
+
+  <section class="wrap section-tight">
+    <PricingCards />
+    <p class="launch-note muted">
+      Launch pricing, shown in USD. Early-access hosts will be told of any change before they’re
+      billed.
+    </p>
+  </section>
+
+  <section class="band section" id="upsells">
+    <div class="wrap upsell-inner">
+      <div>
+        <span class="eyebrow upsell-eyebrow">The guest upsell engine</span>
+        <h2>Your guidebook becomes a <span class="accent-word">revenue line.</span></h2>
+        <p class="lead">
+          Turn on the storefront inside your guide and offer guests the extras they already want.
+          Payments are processed securely and paid out to you. We keep a flat {UPSELL_FEE} of each
+          sale and nothing more.
+        </p>
+        <p class="lead">
+          At $12 a month, a single late check-out can cover a Solo Host plan.
+        </p>
+      </div>
+      <div class="upsell-card">
+        <span class="upsell-head">Ideas hosts sell</span>
+        <ul>
+          {upsellIdeas.map((u) => <li>{u}</li>)}
+        </ul>
+        <div class="upsell-fee">
+          <span class="fee">{UPSELL_FEE}</span>
+          <span>per transaction,<br />only when you sell</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section faq">
+    <h2>Questions hosts ask</h2>
+    <div class="faq-list">
+      {faqs.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p class="muted">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap section-tight" id="early-access">
+    <div class="card waitlist-card">
+      <WaitlistForm id="waitlist-pricing" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    max-width: 780px;
+  }
+
+  .launch-note {
+    text-align: center;
+    font-size: 0.85rem;
+    margin: 24px auto 0;
+  }
+
+  .upsell-inner {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: clamp(32px, 6vw, 72px);
+    align-items: center;
+  }
+
+  @media (max-width: 820px) {
+    .upsell-inner {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .upsell-eyebrow {
+    color: var(--marigold);
+  }
+
+  .upsell-card {
+    border: 1px solid rgba(251, 243, 234, 0.18);
+    border-radius: var(--radius);
+    padding: 28px;
+    background: rgba(251, 243, 234, 0.04);
+  }
+
+  .upsell-head {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--marigold);
+  }
+
+  .upsell-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .upsell-card li {
+    font-size: 0.88rem;
+    padding: 6px 12px;
+    border-radius: 100px;
+    background: rgba(251, 243, 234, 0.1);
+    color: var(--band-ink);
+  }
+
+  .upsell-fee {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(251, 243, 234, 0.18);
+    color: var(--band-muted);
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  .fee {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 2.6rem;
+    color: var(--marigold);
+    line-height: 1;
+  }
+
+  .faq {
+    max-width: 820px;
+  }
+
+  .faq-list {
+    margin-top: 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  details {
+    border-bottom: 1px solid var(--line);
+    padding: 18px 0;
+  }
+
+  summary {
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary::after {
+    content: '+';
+    color: var(--accent);
+    font-size: 1.3rem;
+    line-height: 1;
+  }
+
+  details[open] summary::after {
+    content: '–';
+  }
+
+  details p {
+    margin: 12px 0 0;
+  }
+
+  .waitlist-card {
+    padding: clamp(32px, 5vw, 48px);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+</style>

@@ -1,0 +1,247 @@
+---
+// An illustrative guest guide as a guest would see it on their phone — built
+// in HTML/CSS rather than a screenshot so it stays crisp, themeable, and
+// honest about being a mock ("The Juniper House" is a made-up property).
+---
+
+<div class="phone" role="img" aria-label="Example guest guide for a fictional property, The Juniper House, showing wifi details, local picks with automatically updated hours, a flagged closure, and a late check-out upsell.">
+  <div class="phone-screen" aria-hidden="true">
+    <div class="g-hero">
+      <span class="g-chip">Your stay · Jun 12–16</span>
+      <span class="g-name">The Juniper House</span>
+      <span class="g-sub">Healdsburg, California</span>
+    </div>
+
+    <div class="g-body">
+      <div class="g-row g-quick">
+        <div class="g-tile"><span class="g-k">Wi-Fi</span><span class="g-v">Juniper-Guest</span></div>
+        <div class="g-tile"><span class="g-k">Check-out</span><span class="g-v">11:00 am</span></div>
+      </div>
+
+      <span class="g-section">Local picks</span>
+
+      <div class="g-place">
+        <div class="g-place-main">
+          <span class="g-place-name">Quail &amp; Ember Bakery</span>
+          <span class="g-place-meta">Open today 7 am – 2 pm</span>
+        </div>
+        <span class="g-badge g-badge-ok">Hours updated</span>
+      </div>
+
+      <div class="g-place">
+        <div class="g-place-main">
+          <span class="g-place-name">Russian River Kayak Co.</span>
+          <span class="g-place-meta">Seasonal · opens May 1</span>
+        </div>
+        <span class="g-badge g-badge-ok">Verified</span>
+      </div>
+
+      <div class="g-place g-place-closed">
+        <div class="g-place-main">
+          <span class="g-place-name">Old Mill Wine Bar</span>
+          <span class="g-place-meta">Permanently closed</span>
+        </div>
+        <span class="g-badge g-badge-flag">Flagged</span>
+      </div>
+
+      <div class="g-upsell">
+        <div>
+          <span class="g-upsell-title">Stay a little longer?</span>
+          <span class="g-upsell-sub">Late check-out until 2 pm</span>
+        </div>
+        <span class="g-upsell-btn">$35</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .phone {
+    width: min(300px, 100%);
+    aspect-ratio: 9 / 18.5;
+    border-radius: 42px;
+    padding: 10px;
+    background: #2b1d17;
+    box-shadow:
+      0 0 0 1px rgba(43, 29, 23, 0.4),
+      0 30px 60px -20px rgba(43, 29, 23, 0.45),
+      0 18px 36px -18px rgba(184, 71, 46, 0.35);
+    margin: 0 auto;
+  }
+
+  .phone-screen {
+    height: 100%;
+    border-radius: 33px;
+    overflow: hidden;
+    background: #fffaf4;
+    color: #2b1d17;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-body);
+  }
+
+  .g-hero {
+    padding: 44px 20px 22px;
+    background:
+      radial-gradient(120% 90% at 85% 10%, rgba(242, 181, 68, 0.55), transparent 60%),
+      linear-gradient(160deg, #b8472e 0%, #7d2f1e 100%);
+    color: #fbf3ea;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .g-chip {
+    width: fit-content;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(251, 243, 234, 0.18);
+    border-radius: 100px;
+    padding: 3px 9px;
+    margin-bottom: 10px;
+  }
+
+  .g-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.35rem;
+    line-height: 1.1;
+  }
+
+  .g-sub {
+    font-size: 0.75rem;
+    opacity: 0.85;
+  }
+
+  .g-body {
+    padding: 14px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .g-quick {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .g-tile {
+    background: #f6eadc;
+    border-radius: 12px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .g-k {
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8f7668;
+  }
+
+  .g-v {
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .g-section {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-top: 6px;
+  }
+
+  .g-place {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid #efe2d3;
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .g-place-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .g-place-name {
+    font-size: 0.76rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .g-place-meta {
+    font-size: 0.66rem;
+    color: #6b5347;
+  }
+
+  .g-place-closed .g-place-name {
+    text-decoration: line-through;
+    color: #8f7668;
+  }
+
+  .g-badge {
+    flex-shrink: 0;
+    font-size: 0.56rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 100px;
+  }
+
+  .g-badge-ok {
+    background: rgba(242, 181, 68, 0.28);
+    color: #7a5310;
+  }
+
+  .g-badge-flag {
+    background: rgba(184, 71, 46, 0.14);
+    color: #963721;
+  }
+
+  .g-upsell {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: #2b1d17;
+    color: #fbf3ea;
+  }
+
+  .g-upsell-title {
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .g-upsell-sub {
+    display: block;
+    font-size: 0.64rem;
+    color: #cdb8aa;
+  }
+
+  .g-upsell-btn {
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #f2b544;
+    color: #2b1d17;
+    border-radius: 100px;
+    padding: 5px 12px;
+  }
+</style>

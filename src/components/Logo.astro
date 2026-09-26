@@ -1,0 +1,23 @@
+---
+// Horizontal lockup from logo pack A1a. The light file is for light
+// backgrounds, the dark file for dark ones; `variant="auto"` follows the
+// visitor's color scheme, `"dark"` forces the dark-background file (used on
+// the espresso footer band).
+interface Props {
+  height?: number;
+  variant?: 'auto' | 'dark';
+}
+
+const { height = 32, variant = 'auto' } = Astro.props;
+// Native artwork is 380.48 x 86.71.
+const width = Math.round((height * 380.48) / 86.71);
+---
+
+{variant === 'dark' ? (
+  <img src="/brand/guestguideiq-horizontal-dark.svg" alt="GuestGuideIQ" width={width} height={height} />
+) : (
+  <picture>
+    <source srcset="/brand/guestguideiq-horizontal-dark.svg" media="(prefers-color-scheme: dark)" />
+    <img src="/brand/guestguideiq-horizontal-light.svg" alt="GuestGuideIQ" width={width} height={height} />
+  </picture>
+)}

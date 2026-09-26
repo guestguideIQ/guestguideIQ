@@ -1,45 +1,61 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import WaitlistForm from '../components/WaitlistForm.astro';
+import GuidePhone from '../components/GuidePhone.astro';
 
 const steps = [
   {
-    title: 'A host builds a guide',
-    body: 'An STR operator sets up their digital property guide on GuestGuideIQ in minutes — property details, house rules, and check-in info, all in one place guests actually open.',
+    title: 'Paste your listing link',
+    body: 'Start with the Airbnb or Vrbo URL you already have. There’s no questionnaire and no blank template to fill in.',
   },
   {
-    title: 'We fill it with hyperlocal knowledge',
-    body: 'GuestGuideIQ’s curated hidden gems and neighborhood knowledge populate the guide automatically, tailored to that property’s exact location — no research required from the host.',
+    title: 'Your guide is built in seconds',
+    body: 'GuestGuideIQ reads your listing and drafts the whole guidebook: property details, amenities, and a curated set of restaurants, cafés, outdoor spots and essentials near your address.',
   },
   {
-    title: 'Guests explore like a local',
-    body: 'Guests get a link to the guide before or during their stay, and find real, specific recommendations instead of the same ten tourist spots every site names.',
+    title: 'Make it yours',
+    body: 'Add your house rules and check-in notes, tune the recommendations, and apply your brand colors and typography. Portfolio and agency plans can put the guide on your own domain.',
   },
   {
-    title: 'Experience providers get discovered',
-    body: 'Local guides, tours, and businesses reach guests at exactly the moment they’re deciding what to do nearby — not buried in a search results page.',
+    title: 'Share it and forget it',
+    body: 'Send guests a single link. From then on we re-check your local picks on a regular schedule, update opening hours, and flag anything that has closed. You don’t need to touch it.',
+  },
+];
+
+const always = [
+  {
+    title: 'Scheduled local checks',
+    body: 'Every recommendation in your guide is re-verified against live local business data on a regular cadence.',
+  },
+  {
+    title: 'Closures flagged, not discovered',
+    body: 'When a venue closes for good, it’s flagged in your guide before a guest makes the trip, so it doesn’t turn into a complaint.',
+  },
+  {
+    title: 'Hours that match reality',
+    body: 'Seasonal and changed opening hours are updated automatically. You won’t have to track them yourself.',
   },
 ];
 ---
 
 <BaseLayout
   title="How It Works"
-  description="How GuestGuideIQ turns a short-term rental property guide into a source of real, hyperlocal recommendations."
+  description="Paste your Airbnb or Vrbo link and GuestGuideIQ builds a branded guest guidebook app in seconds, then keeps its local recommendations accurate on its own."
 >
-  <section class="wrap section">
-    <span class="eyebrow">How it will work</span>
-    <h1>From property guide to hidden gem, in a few clicks.</h1>
+  <section class="wrap section intro">
+    <span class="eyebrow">How it works</span>
+    <h1>From listing link to living guidebook in four steps.</h1>
     <p class="lead">
-      GuestGuideIQ isn’t live yet — here’s the flow we’re building, from the host’s first setup
-      to the guest walking into a place no listicle would have found.
+      GuestGuideIQ is built on one idea: the hard part of a guidebook isn’t making it, it’s
+      keeping it right. So we automate both.
     </p>
   </section>
 
-  <section class="wrap section-tight steps">
-    <ol>
+  <section class="wrap section-tight flow">
+    <ol class="steps">
       {steps.map((step, i) => (
         <li class="step">
-          <span class="step-number mono">{String(i + 1).padStart(2, '0')}</span>
+          <span class="step-number" aria-hidden="true"><span>{i + 1}</span></span>
           <div>
             <h3>{step.title}</h3>
             <p class="muted">{step.body}</p>
@@ -47,9 +63,54 @@ const steps = [
         </li>
       ))}
     </ol>
+    <div class="flow-visual">
+      <GuidePhone />
+    </div>
   </section>
 
-  <section class="wrap section-tight" id="waitlist">
+  <section class="band section">
+    <div class="wrap">
+      <span class="eyebrow always-eyebrow">Set it and forget it</span>
+      <h2>The part other guidebooks leave to you.</h2>
+      <p class="lead">
+        A static guidebook starts going out of date the day you publish it. Yours keeps itself
+        current.
+      </p>
+      <div class="always">
+        {always.map((a) => (
+          <div class="always-item">
+            <h3>{a.title}</h3>
+            <p class="muted">{a.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section two-up">
+    <div>
+      <span class="eyebrow">For growing portfolios</span>
+      <h2>Runs alongside the tools you already use.</h2>
+      <p class="lead">
+        Portfolio and agency plans connect to your property management system, so guides stay in
+        step with your listings. Agency plans add deeper smart-lock and smart-home sync for
+        operations that run many doors.
+      </p>
+      <a class="btn btn-secondary" href="/pricing/">Compare plans</a>
+    </div>
+    <div>
+      <span class="eyebrow">Revenue, built in</span>
+      <h2>Upsells guests actually see.</h2>
+      <p class="lead">
+        Turn on the guest storefront to offer late check-outs, firewood bundles, mid-stay cleans
+        or local tours. Payments go straight to you, and we take a small fee only when you make
+        a sale.
+      </p>
+      <a class="btn btn-secondary" href="/pricing/#upsells">How upsells work</a>
+    </div>
+  </section>
+
+  <section class="wrap section-tight" id="early-access">
     <div class="card waitlist-card">
       <WaitlistForm id="waitlist-how" />
     </div>
@@ -57,41 +118,110 @@ const steps = [
 </BaseLayout>
 
 <style>
-  .steps ol {
+  .intro {
+    max-width: 780px;
+    padding-bottom: clamp(24px, 4vw, 40px);
+  }
+
+  .flow {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: clamp(32px, 6vw, 80px);
+    align-items: start;
+    padding-bottom: clamp(56px, 8vw, 96px);
+  }
+
+  @media (max-width: 860px) {
+    .flow {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .steps {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 32px;
-    max-width: 68ch;
+    gap: 36px;
   }
 
   .step {
     display: grid;
-    grid-template-columns: 48px 1fr;
+    grid-template-columns: 52px 1fr;
     gap: 20px;
   }
 
   .step-number {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--accent);
-    color: var(--accent);
+    width: 44px;
+    height: 44px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: var(--accent);
+    color: var(--accent-ink);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  /* keep the digit upright inside the rotated pin */
+  .step-number > span {
+    transform: rotate(45deg);
   }
 
   .step h3 {
     margin-bottom: 4px;
   }
 
+  .flow-visual {
+    position: sticky;
+    top: 110px;
+  }
+
+  .always-eyebrow {
+    color: var(--marigold);
+  }
+
+  .always {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-top: 40px;
+  }
+
+  @media (max-width: 820px) {
+    .always {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .always-item {
+    border-top: 1px solid rgba(251, 243, 234, 0.2);
+    padding-top: 18px;
+  }
+
+  .two-up {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(32px, 6vw, 72px);
+  }
+
+  @media (max-width: 820px) {
+    .two-up {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .two-up .btn {
+    margin-top: 8px;
+  }
+
   .waitlist-card {
     padding: clamp(32px, 5vw, 48px);
-    max-width: 640px;
+    max-width: 680px;
     margin: 0 auto;
   }
 </style>

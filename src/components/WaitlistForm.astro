@@ -4,18 +4,19 @@ import { LEADS } from '../site.config';
 interface Props {
   id?: string;
   compact?: boolean;
+  onDark?: boolean;
 }
 
-const { id = 'waitlist', compact = false } = Astro.props;
+const { id = 'waitlist', compact = false, onDark = false } = Astro.props;
 ---
 
-<div class:list={['waitlist-form', { compact }]} id={id}>
+<div class:list={['waitlist-form', { compact, 'on-dark': onDark }]} id={id}>
   {!compact && (
     <>
-      <h2>Be first to know when we launch</h2>
+      <h2>Claim your guide before we launch.</h2>
       <p class="lead">
-        Join the waitlist and we’ll email you the moment GuestGuideIQ is ready — plus the first
-        look at real hidden gems near you.
+        We’re opening GuestGuideIQ to a small group of hosts first. Leave your email and we’ll
+        send your invite, along with early-access pricing.
       </p>
     </>
   )}
@@ -32,14 +33,14 @@ const { id = 'waitlist', compact = false } = Astro.props;
       type="email"
       name="email"
       required
-      placeholder="you@email.com"
+      placeholder="you@yourproperty.com"
       autocomplete="email"
     />
-    <button class="btn btn-primary" type="submit">Join the Waitlist</button>
+    <button class="btn btn-primary" type="submit">Get Early Access</button>
   </form>
-  <p class="form-note">We’ll only email you about GuestGuideIQ’s launch. No spam, unsubscribe anytime.</p>
+  <p class="form-note">We’ll only email you about your GuestGuideIQ invite. No spam, unsubscribe anytime.</p>
   <p class="form-error" data-form-error hidden>
-    Something went wrong sending that — please try again, or email us at hello@guestguideiq.com.
+    Something went wrong sending that. Please try again, or email us at hello@guestguideiq.com.
   </p>
 </div>
 
@@ -52,7 +53,7 @@ const { id = 'waitlist', compact = false } = Astro.props;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin-top: 18px;
+    margin-top: 22px;
   }
 
   .compact .inline-form {
@@ -60,25 +61,46 @@ const { id = 'waitlist', compact = false } = Astro.props;
   }
 
   .inline-form input[type='email'] {
-    flex: 1 1 260px;
+    flex: 1 1 240px;
+    min-width: 0;
     font-family: var(--font-body);
     font-size: 1rem;
-    padding: 12px 16px;
+    padding: 12px 18px;
     border-radius: 100px;
     border: 1px solid var(--line);
     background: var(--surface-raised);
     color: var(--ink);
   }
 
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  .on-dark h2 {
+    color: var(--band-ink);
+  }
+
+  .on-dark .lead,
+  .on-dark .form-note {
+    color: var(--band-muted);
+  }
+
+  .on-dark .inline-form input[type='email'] {
+    background: rgba(251, 243, 234, 0.08);
+    border-color: rgba(251, 243, 234, 0.22);
+    color: var(--band-ink);
+  }
+
+  .on-dark .inline-form input[type='email']::placeholder {
+    color: var(--band-muted);
+  }
+
+  .on-dark .btn-primary {
+    background: var(--marigold);
+    color: var(--marigold-ink);
+  }
+
+  .on-dark .btn-primary:hover {
+    background: #f6c567;
+  }
+
+  .on-dark .form-error {
+    color: #ef8d73;
   }
 </style>

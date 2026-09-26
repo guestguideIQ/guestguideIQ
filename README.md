@@ -18,9 +18,9 @@ npm run preview   # serve the built ./dist locally
 ```
 src/
   layouts/BaseLayout.astro   shared <head>, header, footer for every page
-  components/                Header, Footer, forms, ExperienceCard
-  data/experiences.ts        sample-experience content (shared by Home + /experiences)
-  pages/                     one file per route (index, how-it-works, experiences,
+  components/                Header, Footer, Logo, forms, GuidePhone (mock guest guide), PricingCards
+  data/pricing.ts            plan tiers + upsell fee (shared by Home + /pricing)
+  pages/                     one file per route (index, how-it-works, pricing,
                               partners, about, contact, thank-you, 404)
   site.config.ts             the handful of values you edit before launch (below)
   styles/global.css          design tokens (palette/type) + shared component styles
@@ -82,15 +82,15 @@ both `null` to ship without tracking.
 
 ### 5. Social preview image
 
-Page `<head>` tags reference `/og-image.jpg` but it's commented out in
-[`BaseLayout.astro`](src/layouts/BaseLayout.astro) until a real 1200×630 image exists. Add the
-image to `public/og-image.jpg` and uncomment the `og:image` tag.
+`og:image` currently uses the square brand avatar (`public/brand/social-avatar-800.png`) with a
+`summary` Twitter card. Once a wide 1200×630 social card exists, add it to `public/` and switch
+the tag and card type in [`BaseLayout.astro`](src/layouts/BaseLayout.astro).
 
 ### 6. Content review
 
-All page copy and the five sample experiences in `src/data/experiences.ts` are drafted from the
-spec — read them over before launch, especially the About page's founding story, which is
-written generically and could use your actual voice.
+Page copy is drafted from the GuestGuideIQ Business Plan (positioning, pricing tiers, upsell
+engine, roadmap). Read it over before launch — especially pricing in `src/data/pricing.ts` and
+the About page's founding story, which could use your actual voice.
 
 ## Deployment
 
@@ -100,6 +100,8 @@ builds the site and deploys it to GitHub Pages via GitHub Actions. One-time setu
 
 ## Design direction
 
-The palette, type (Fraunces / Work Sans / IBM Plex Mono), and voice are a v1 placeholder — see
-[docs/SPEC.md §7](docs/SPEC.md). All tokens live in `src/styles/global.css`; swap them wholesale
-once a real brand guide exists.
+Brand comes from logo pack A1a ("Talking Pin, Sunset Clay"): Terracotta `#B8472E`, Marigold
+`#F2B544`, Cream `#FBF3EA`, Espresso `#2B1D17`, Warm grey `#6B5347`; Fraunces for display and
+Instrument Sans for body. Logo files live in `public/brand/`, favicons in `public/`. All tokens
+live in `src/styles/global.css`. Voice, per the business plan: editorial, intelligent, refined —
+an automated digital concierge, not a binder replacement.
