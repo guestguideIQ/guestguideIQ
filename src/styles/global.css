@@ -184,12 +184,14 @@ select:focus-visible {
   padding: 0 clamp(20px, 5vw, 56px);
 }
 
+/* Vertical only: these are combined with .wrap, whose side gutter a
+   `padding: X 0` shorthand would silently zero out. */
 .section {
-  padding: clamp(56px, 8vw, 96px) 0;
+  padding-block: clamp(56px, 8vw, 96px);
 }
 
 .section-tight {
-  padding: clamp(32px, 5vw, 56px) 0;
+  padding-block: clamp(32px, 5vw, 56px);
 }
 
 .lead {
