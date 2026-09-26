@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import WaitlistForm from '../components/WaitlistForm.astro';
 import GuidePhone from '../components/GuidePhone.astro';
+import ConciergeChat from '../components/ConciergeChat.astro';
 
 const steps = [
   {
@@ -10,7 +11,7 @@ const steps = [
   },
   {
     title: 'Your guide is built in seconds',
-    body: 'GuestGuideIQ reads your listing and drafts the whole guidebook: property details, amenities, and a curated set of restaurants, cafés, outdoor spots and essentials near your address.',
+    body: 'GuestGuideIQ reads your listing and drafts the whole guidebook: property details, amenities, and hyperlocal picks curated for your neighborhood, from the café locals queue at to the trail they save for weekdays.',
   },
   {
     title: 'Make it yours',
@@ -87,6 +88,23 @@ const always = [
         ))}
       </div>
     </div>
+  </section>
+
+  <section class="wrap section guests">
+    <div>
+      <span class="eyebrow">What your guests get</span>
+      <h2>Hyperlocal picks, planned around them.</h2>
+      <p class="lead">
+        Guests open your guide and find the neighborhood as a local knows it: specific places, the
+        right timing, and the etiquette that makes them worth the trip. When they want a plan, they
+        tell your concierge what they love and how long they have, and get an itinerary built from
+        your guide’s own picks.
+      </p>
+      <a class="btn btn-secondary" href="/experiences/">
+        See hyperlocal picks
+      </a>
+    </div>
+    <ConciergeChat />
   </section>
 
   <section class="wrap section two-up">
@@ -206,6 +224,23 @@ const always = [
   .always-item {
     border-top: 1px solid rgba(251, 243, 234, 0.2);
     padding-top: 18px;
+  }
+
+  .guests {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(32px, 6vw, 80px);
+    align-items: center;
+  }
+
+  @media (max-width: 860px) {
+    .guests {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .guests .btn {
+    margin-top: 8px;
   }
 
   .two-up {

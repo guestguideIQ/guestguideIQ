@@ -1,0 +1,179 @@
+---
+// Illustrative guest ↔ concierge exchange for the fictional "Juniper House"
+// used by GuidePhone. Mirrors the guest itinerary-chat story (US2.3 in the
+// 260905-backend-services-spec intent): the itinerary is built only from the
+// property's own local picks, never the whole internet.
+---
+
+<div
+  class="chat"
+  role="img"
+  aria-label="Example conversation: a guest says they have Saturday morning, love coffee and an easy hike, and need to be back by 2 pm. The concierge replies with a three-stop itinerary drawn from the property's own local picks."
+>
+  <div class="chat-head" aria-hidden="true">
+    <span class="chat-avatar">
+      <span></span>
+      <span></span>
+      <span></span>
+    </span>
+    <div>
+      <span class="chat-title">Your concierge</span>
+      <span class="chat-sub">The Juniper House</span>
+    </div>
+  </div>
+
+  <div class="chat-body" aria-hidden="true">
+    <p class="bubble guest">
+      We’ve got Saturday morning. We love good coffee and an easy hike, and need to be back by 2.
+    </p>
+    <div class="bubble concierge">
+      <p>Here’s a relaxed plan, all within 15 minutes of the house:</p>
+      <ol class="plan">
+        <li>
+          <span class="t">8:30</span>
+          <span>
+            <strong>Quail &amp; Ember Bakery</strong> · locals queue for the morning bun
+          </span>
+        </li>
+        <li>
+          <span class="t">9:30</span>
+          <span>
+            <strong>Ridge Loop trail</strong> · easy 2 mi, shaded, river views
+          </span>
+        </li>
+        <li>
+          <span class="t">12:00</span>
+          <span>
+            <strong>Alder Street Deli</strong> · picnic lunch, open until 3
+          </span>
+        </li>
+      </ol>
+    </div>
+    <span class="chat-note">Built from your host’s local picks · hours checked this week</span>
+  </div>
+</div>
+
+<style>
+  .chat {
+    width: min(420px, 100%);
+    margin: 0 auto;
+    border-radius: 22px;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .chat-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .chat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #b8472e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .chat-avatar span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fbf3ea;
+  }
+
+  .chat-avatar span:nth-child(2) {
+    background: #f2b544;
+  }
+
+  .chat-title {
+    display: block;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--ink);
+  }
+
+  .chat-sub {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  .chat-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .bubble {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    padding: 11px 14px;
+    border-radius: 16px;
+    max-width: 88%;
+  }
+
+  .bubble.guest {
+    align-self: flex-end;
+    background: var(--band);
+    color: var(--band-ink);
+    border-bottom-right-radius: 4px;
+  }
+
+  .bubble.concierge {
+    align-self: flex-start;
+    background: var(--surface);
+    color: var(--ink);
+    border-bottom-left-radius: 4px;
+  }
+
+  .bubble.concierge p {
+    margin: 0 0 10px;
+  }
+
+  .plan {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .plan li {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 8px;
+    font-size: 0.84rem;
+    color: var(--ink-muted);
+  }
+
+  .plan strong {
+    color: var(--ink);
+  }
+
+  .t {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .chat-note {
+    align-self: flex-start;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-faint);
+    padding-left: 4px;
+  }
+</style>

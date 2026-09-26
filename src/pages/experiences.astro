@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ExperienceCard from '../components/ExperienceCard.astro';
+import WaitlistForm from '../components/WaitlistForm.astro';
+import { experiences } from '../data/experiences';
+
+const principles = [
+  {
+    title: 'Curated by neighborhood',
+    body: 'Picks are matched to your property’s exact address, the bakery two streets uphill rather than the famous one across town.',
+  },
+  {
+    title: 'What a local tells a friend',
+    body: 'We look for the habits, customs and timing that make a place worth it. None of it is scraped from a review site or ranked by clicks.',
+  },
+  {
+    title: 'Kept true over time',
+    body: 'Hyperlocal only helps if it’s still right. Every pick is re-checked on a schedule, so hours stay current and closures are flagged.',
+  },
+];
+---
+
+<BaseLayout
+  title="Hyperlocal Picks"
+  description="What locals know that guidebooks don't: the kind of hyperlocal, hidden-gem recommendation GuestGuideIQ curates into every host's guide."
+>
+  <section class="wrap section intro">
+    <span class="eyebrow">Hyperlocal picks</span>
+    <h1>What locals know that guidebooks don’t.</h1>
+    <p class="lead">
+      The internet made it easy to find the ten most-photographed things in any city, and somehow
+      harder to find what the people who live there actually do. That’s the knowledge GuestGuideIQ
+      puts in your guests’ hands.
+    </p>
+  </section>
+
+  <section class="wrap section-tight principles">
+    {principles.map((p) => (
+      <div class="principle">
+        <h3>{p.title}</h3>
+        <p class="muted">{p.body}</p>
+      </div>
+    ))}
+  </section>
+
+  <section class="wrap section">
+    <div class="section-head">
+      <span class="eyebrow">A preview</span>
+      <h2>The kind of pick your guests will find</h2>
+      <p class="lead">
+        Illustrative examples from a few very different places, showing the sort of recommendation
+        we curate. They aren’t a live directory.
+      </p>
+    </div>
+    <div class="experience-grid">
+      {experiences.map((exp) => (
+        <ExperienceCard experience={exp} showWhy />
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap section-tight" id="early-access">
+    <div class="card waitlist-card">
+      <WaitlistForm id="waitlist-experiences" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .intro {
+    max-width: 800px;
+  }
+
+  .principles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  @media (max-width: 820px) {
+    .principles {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .principle {
+    border-top: 2px solid var(--ink);
+    padding-top: 18px;
+  }
+
+  .section-head {
+    max-width: 720px;
+    margin-bottom: 32px;
+  }
+
+  .experience-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 22px;
+  }
+
+  .waitlist-card {
+    padding: clamp(32px, 5vw, 48px);
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--surface-raised);
+  }
+</style>
