@@ -9,6 +9,10 @@ export default defineConfig({
   site: SITE_URL,
   outDir: './dist',
   integrations: [sitemap()],
+  // /experiences/ was the pre-pivot guest-facing showcase; keep old links working.
+  redirects: {
+    '/experiences': '/how-it-works',
+  },
   build: {
     // Astro defaults to /page/index.html which gives clean GitHub Pages URLs.
     format: 'directory',

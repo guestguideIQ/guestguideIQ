@@ -8,8 +8,9 @@
 export const SITE = {
   name: 'GuestGuideIQ',
   url: 'https://guestguideiq.com', // TODO: confirm domain availability (see docs/SPEC.md §13)
+  tagline: 'The automated digital concierge',
   description:
-    'GuestGuideIQ turns any short-term rental stay into a hyperlocal experience — real hidden gems, curated by neighborhood, built into your host’s digital guide.',
+    'GuestGuideIQ turns your Airbnb or Vrbo listing into a branded guest guidebook app in seconds, and keeps its local recommendations accurate on its own.',
   contactEmail: 'hello@guestguideiq.com', // TODO: point this at a real inbox before launch
 };
 

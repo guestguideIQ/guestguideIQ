@@ -8,9 +8,15 @@ interface Props {
 
 const { id = 'partner-form', defaultType } = Astro.props;
 
+// `value`s are stored verbatim by the backend's lead-capture endpoint
+// (organizationType is a free string there); keep existing values stable so
+// earlier submissions stay comparable.
 const orgTypes = [
-  { value: 'str-operator', label: 'STR operator / property manager' },
-  { value: 'experience-provider', label: 'Experience provider (guide, tour, local business)' },
+  { value: 'str-operator', label: 'Host / co-host / property manager' },
+  { value: 'pms-platform', label: 'PMS or hospitality software platform' },
+  { value: 'experience-provider', label: 'Local business or experience provider' },
+  { value: 'hardware', label: 'Smart-home or in-room hardware' },
+  { value: 'hospitality', label: 'Boutique hotel or glamping operator' },
   { value: 'dmo', label: 'Destination / DMO' },
   { value: 'other', label: 'Other' },
 ];
@@ -43,7 +49,7 @@ const orgTypes = [
         type="text"
         name="role"
         required
-        placeholder="e.g. Host, Property Manager, Guide"
+        placeholder="e.g. Founder, Partnerships lead, Host"
       />
     </div>
     <div class="field">
@@ -68,14 +74,14 @@ const orgTypes = [
       id={`${id}-message`}
       name="message"
       required
-      placeholder="Tell us about your properties, your listings, or the experiences you offer."
+      placeholder="Tell us about your portfolio, your platform, or what you offer guests."
     ></textarea>
   </div>
 
   <button class="btn btn-primary" type="submit">Send Inquiry</button>
-  <p class="form-note">We reply to every inquiry personally — usually within a couple of days.</p>
+  <p class="form-note">We reply to every inquiry personally, usually within a couple of days.</p>
   <p class="form-error" data-form-error hidden>
-    Something went wrong sending that — please try again, or email us at hello@guestguideiq.com.
+    Something went wrong sending that. Please try again, or email us at hello@guestguideiq.com.
   </p>
 </form>
 

@@ -1,48 +1,80 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const roadmap = [
+  {
+    title: 'Boutique hotels & glamping',
+    body: 'The same local curation, installable guest app and on-property upsells, built for multi-room and multi-site operators.',
+  },
+  {
+    title: 'A local partner marketplace',
+    body: 'Tour operators, private chefs and rental companies featured in the guides where they’re most relevant.',
+  },
+  {
+    title: 'In-room displays',
+    body: 'GuestGuideIQ on the tablets and smart-home screens guests find when they arrive, as well as on their phones.',
+  },
+];
 ---
 
 <BaseLayout
   title="About"
-  description="Why GuestGuideIQ exists: hyperlocal travel knowledge, built into the guest guides people already open."
+  description="Why GuestGuideIQ exists: guidebooks shouldn't be a chore to build or a liability to maintain."
 >
   <section class="wrap section about-hero">
-    <span class="eyebrow">Why we're building this</span>
-    <h1>Every place has an Alfama bakery. Most travelers never find it.</h1>
+    <span class="eyebrow">Why we’re building this</span>
+    <h1>Hosts don’t need another binder. They need a <span class="accent-word">concierge.</span></h1>
     <p class="lead">
-      The internet made it easier than ever to find the ten most-photographed things to do in
-      any city — and, somehow, harder to find what the people who live there actually do. Every
-      "hidden gem" list reads the same because it's built the same way: scraped, ranked, and
-      repeated across a thousand sites.
+      The best hosts obsess over the details: the linen, the lighting, the coffee on the counter.
+      Then guests open a guidebook that’s half-finished or a year out of date. That isn’t a
+      failing of the host. The tools ask too much of them.
     </p>
   </section>
 
   <section class="wrap section-tight about-body">
     <p>
-      GuestGuideIQ starts from a different question: not "what ranks well," but "what does a
-      local actually tell a friend who's visiting?" That knowledge exists — it just doesn't live
-      anywhere a traveler can find it before they've already left.
+      Every digital guidebook we tried had the same flaw. It starts as a blank page and asks you
+      to write fifty restaurant descriptions, and the moment you finish it starts going stale.
+      Hours change, favorites close, and it’s the guest who finds out, not you.
     </p>
     <p>
-      Short-term rentals turned out to be the right place to put it. A host already has a
-      relationship with their guest, and guests already open a property guide to find the wifi
-      password and check-out time. That's a real, trusted moment to put hyperlocal knowledge in
-      front of someone — without asking them to discover, download, and trust a whole new app
-      first.
+      GuestGuideIQ starts with the listing you already have. It builds the guide for you, gives
+      it the same care you put into your space, and keeps checking every recommendation so it
+      stays true. It should feel like an automated digital concierge, and it should earn its
+      place by bringing in revenue through the extras guests are glad to buy.
     </p>
     <p>
-      Our vision is simple: every stay comes with a local's know-how built in, and every local
-      business or guide gets a real chance to be discovered by the people already standing in
-      their neighborhood.
+      We’re a small, independent team. The founders build the product, and for now they also
+      answer every support message themselves. We think staying that close to our hosts is how
+      you build a tool they want to keep.
     </p>
+  </section>
+
+  <section class="band section">
+    <div class="wrap">
+      <span class="eyebrow roadmap-eyebrow">Where we’re headed</span>
+      <h2>The operating system for the guest experience.</h2>
+      <p class="lead">
+        Short-term rentals come first. After that, we want to bring together great design, local
+        knowledge and the smart home everywhere guests stay.
+      </p>
+      <div class="roadmap">
+        {roadmap.map((r) => (
+          <div class="roadmap-item">
+            <h3>{r.title}</h3>
+            <p class="muted">{r.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   </section>
 
   <section class="wrap section-tight about-contact">
     <div class="card">
       <h2>Investors &amp; press</h2>
       <p class="muted">
-        Want the fuller story, our roadmap, or just to ask a question? Reach out through{' '}
-        <a href="/contact/">our contact page</a> — we read every message ourselves.
+        Want the fuller story or the roadmap, or have a question? Reach out through{' '}
+        <a href="/contact/">our contact page</a>. We read every message ourselves.
       </p>
     </div>
   </section>
@@ -50,16 +82,45 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <style>
   .about-hero {
-    max-width: 760px;
+    max-width: 820px;
   }
 
   .about-body {
     max-width: 68ch;
+    font-size: 1.05rem;
+    padding-bottom: clamp(48px, 7vw, 80px);
+  }
+
+  .roadmap-eyebrow {
+    color: var(--marigold);
+  }
+
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    margin-top: 40px;
+  }
+
+  @media (max-width: 820px) {
+    .roadmap {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .roadmap-item {
+    border-top: 1px solid rgba(251, 243, 234, 0.2);
+    padding-top: 18px;
+  }
+
+  .about-contact {
+    padding-top: clamp(48px, 7vw, 80px);
   }
 
   .about-contact .card {
     padding: clamp(26px, 4vw, 36px);
     max-width: 640px;
+    background: var(--surface-raised);
   }
 
   .about-contact h2 {

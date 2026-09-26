@@ -7,35 +7,34 @@ import { SITE } from '../site.config';
 
 <BaseLayout
   title="Contact"
-  description="Get in touch with GuestGuideIQ — join the waitlist, apply as a partner, or reach out as an investor or press."
+  description="Get in touch with GuestGuideIQ: request early access, partner with us, or reach out as an investor or member of the press."
 >
   <section class="wrap section">
     <span class="eyebrow">Get in touch</span>
     <h1>Three quick ways to reach us.</h1>
     <p class="lead">
-      Pick the one that fits — or just email us directly at{' '}
+      Pick the one that fits, or email us directly at{' '}
       <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
     </p>
   </section>
 
   <section class="wrap section-tight contact-grid">
     <div class="card contact-card">
-      <span class="eyebrow">Traveler</span>
-      <h2>Join the waitlist</h2>
+      <span class="eyebrow">Hosts &amp; property managers</span>
+      <h2>Get early access</h2>
       <p class="muted">
-        We’ll email you the moment GuestGuideIQ launches — no spam, just the launch and a first
-        look at real hidden gems.
+        We’re onboarding a small group of hosts first. Leave your email and we’ll send your
+        invite and early-access pricing.
       </p>
       <WaitlistForm id="waitlist-contact" compact />
     </div>
 
     <div class="card contact-card">
-      <span class="eyebrow">STR operator / experience provider / DMO</span>
-      <h2>Apply as a partner</h2>
+      <span class="eyebrow">Platforms, businesses &amp; hardware</span>
+      <h2>Partner with us</h2>
       <p class="muted">
-        Whether you’re a short-term rental operator, an experience provider, or a destination
-        organization, the full partner form covers all three and routes to the right
-        conversation.
+        PMS platforms, local businesses, smart-home makers and boutique hotels can all use the
+        partner form, and it reaches the right person.
       </p>
       <a class="btn btn-primary" href="/partners/#apply">Go to the partner form</a>
     </div>
@@ -44,8 +43,8 @@ import { SITE } from '../site.config';
       <span class="eyebrow">Investor / press</span>
       <h2>Request more info</h2>
       <p class="muted">
-        Want the fuller story, our roadmap, or just to ask a question directly? Tell us a bit
-        about yourself below.
+        Want the fuller story or the roadmap, or have a question? Tell us a little about
+        yourself below.
       </p>
       <InvestorForm id="investor-contact" />
     </div>
@@ -67,6 +66,7 @@ import { SITE } from '../site.config';
 
   .contact-card {
     padding: clamp(24px, 4vw, 32px);
+    background: var(--surface-raised);
   }
 
   .contact-card h2 {

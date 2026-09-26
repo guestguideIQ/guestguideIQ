@@ -1,7 +1,7 @@
 {
   "name": "guestguideiq",
   "version": "1.0.0",
-  "description": "GuestGuideIQ marketing site — hyperlocal travel experiences for short-term rental guests.",
+  "description": "GuestGuideIQ marketing site: the automated digital concierge for boutique short-term rental hosts.",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
@@ -18,7 +18,7 @@
   },
   "keywords": [
     "guestguideiq",
-    "hyperlocal-travel",
+    "digital-guidebook",
     "short-term-rental"
   ],
   "author": "",

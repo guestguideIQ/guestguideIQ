@@ -1,7 +1,9 @@
 ---
+import Logo from './Logo.astro';
+
 const nav = [
   { href: '/how-it-works/', label: 'How It Works' },
-  { href: '/experiences/', label: 'Sample Experiences' },
+  { href: '/pricing/', label: 'Pricing' },
   { href: '/partners/', label: 'Partners' },
   { href: '/about/', label: 'About' },
 ];
@@ -9,9 +11,8 @@ const nav = [
 
 <header class="site-header">
   <div class="wrap site-header-inner">
-    <a class="logo" href="/">
-      <span class="logo-mark" aria-hidden="true">◎</span>
-      GuestGuideIQ
+    <a class="logo" href="/" aria-label="GuestGuideIQ home">
+      <Logo height={34} />
     </a>
     <nav class="site-nav" aria-label="Primary">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
@@ -22,7 +23,7 @@ const nav = [
         {nav.map((item) => (
           <li><a href={item.href}>{item.label}</a></li>
         ))}
-        <li class="nav-cta"><a class="btn btn-primary btn-small" href="/#waitlist">Join the Waitlist</a></li>
+        <li class="nav-cta"><a class="btn btn-primary btn-small" href="/#waitlist">Get Early Access</a></li>
       </ul>
     </nav>
   </div>
@@ -31,7 +32,8 @@ const nav = [
 <style>
   .site-header {
     border-bottom: 1px solid var(--line);
-    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
     position: sticky;
     top: 0;
     z-index: 40;
@@ -46,19 +48,9 @@ const nav = [
   }
 
   .logo {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 1.15rem;
-    color: var(--ink);
-    text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-  }
-
-  .logo-mark {
-    color: var(--accent);
-    font-size: 1rem;
+    text-decoration: none;
   }
 
   .site-nav ul {
@@ -74,6 +66,11 @@ const nav = [
     text-decoration: none;
     color: var(--ink-muted);
     font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .site-nav a.btn-primary {
+    color: var(--accent-ink);
   }
 
   .site-nav a:hover {

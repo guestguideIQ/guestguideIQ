@@ -1,24 +1,28 @@
 ---
+import Logo from './Logo.astro';
 import { SITE } from '../site.config';
 
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer">
+<footer class="site-footer band">
   <div class="wrap footer-inner">
     <div class="footer-brand">
-      <span class="logo">
-        <span class="logo-mark" aria-hidden="true">◎</span>
-        GuestGuideIQ
-      </span>
-      <p class="muted footer-tagline">Hyperlocal travel, built into every stay.</p>
+      <Logo height={32} variant="dark" />
+      <p class="footer-tagline">
+        {SITE.tagline} for boutique short-term rentals. Set it up once and leave it to us.
+      </p>
     </div>
 
     <nav class="footer-nav" aria-label="Footer">
       <div class="footer-col">
-        <span class="footer-heading">Site</span>
+        <span class="footer-heading">Product</span>
         <a href="/how-it-works/">How It Works</a>
-        <a href="/experiences/">Sample Experiences</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/pricing/#upsells">Guest Upsells</a>
+      </div>
+      <div class="footer-col">
+        <span class="footer-heading">Company</span>
         <a href="/partners/">Partners</a>
         <a href="/about/">About</a>
         <a href="/contact/">Contact</a>
@@ -26,20 +30,19 @@ const year = new Date().getFullYear();
       <div class="footer-col">
         <span class="footer-heading">Get in touch</span>
         <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
-        <a href="/#waitlist">Join the waitlist</a>
+        <a href="/#early-access">Get early access</a>
       </div>
     </nav>
   </div>
   <div class="wrap footer-bottom">
-    <span class="mono">© {year} GuestGuideIQ. All rights reserved.</span>
+    <span>© {year} GuestGuideIQ. All rights reserved.</span>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    border-top: 1px solid var(--line);
-    background: var(--surface);
     margin-top: clamp(48px, 8vw, 96px);
+    border-top: 1px solid rgba(251, 243, 234, 0.1);
   }
 
   .footer-inner {
@@ -47,33 +50,20 @@ const year = new Date().getFullYear();
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 40px;
-    padding-top: clamp(40px, 6vw, 64px);
-    padding-bottom: 32px;
-  }
-
-  .footer-brand .logo {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 1.1rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--ink);
-  }
-
-  .logo-mark {
-    color: var(--accent);
+    padding-top: clamp(48px, 7vw, 72px);
+    padding-bottom: 36px;
   }
 
   .footer-tagline {
-    margin-top: 8px;
-    font-size: 0.9rem;
-    max-width: 32ch;
+    margin-top: 16px;
+    font-size: 0.92rem;
+    max-width: 34ch;
+    color: var(--band-muted);
   }
 
   .footer-nav {
     display: flex;
-    gap: 56px;
+    gap: clamp(32px, 6vw, 64px);
     flex-wrap: wrap;
   }
 
@@ -84,29 +74,29 @@ const year = new Date().getFullYear();
   }
 
   .footer-heading {
-    font-family: var(--font-mono);
+    font-weight: 600;
     font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--ink-faint);
+    color: var(--marigold);
     margin-bottom: 2px;
   }
 
   .footer-col a {
-    color: var(--ink-muted);
+    color: var(--band-muted);
     text-decoration: none;
     font-size: 0.92rem;
   }
 
   .footer-col a:hover {
-    color: var(--ink);
+    color: var(--band-ink);
   }
 
   .footer-bottom {
-    border-top: 1px solid var(--line-soft);
-    padding-top: 16px;
-    padding-bottom: 24px;
-    font-size: 0.78rem;
-    color: var(--ink-faint);
+    border-top: 1px solid rgba(251, 243, 234, 0.12);
+    padding-top: 18px;
+    padding-bottom: 28px;
+    font-size: 0.8rem;
+    color: var(--band-muted);
   }
 </style>
