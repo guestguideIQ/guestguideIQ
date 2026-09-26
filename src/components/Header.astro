@@ -21,9 +21,15 @@ const nav = [
       </label>
       <ul>
         {nav.map((item) => (
-          <li><a href={item.href}>{item.label}</a></li>
+          <li>
+            <a href={item.href}>{item.label}</a>
+          </li>
         ))}
-        <li class="nav-cta"><a class="btn btn-primary btn-small" href="/#waitlist">Get Early Access</a></li>
+        <li class="nav-cta">
+          <a class="btn btn-primary btn-small" href="/#waitlist">
+            Get Early Access
+          </a>
+        </li>
       </ul>
     </nav>
   </div>

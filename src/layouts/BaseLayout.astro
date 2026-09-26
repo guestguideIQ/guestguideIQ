@@ -57,10 +57,19 @@ const canonicalURL = new URL(Astro.url.pathname, SITE.url);
     )}
     {ANALYTICS.ga4MeasurementId && (
       <>
-        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS.ga4MeasurementId}`}></script>
+        <script
+          is:inline
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${ANALYTICS.ga4MeasurementId}`}
+        ></script>
         <script is:inline define:vars={{ id: ANALYTICS.ga4MeasurementId }}>
           window.dataLayer = window.dataLayer || [];
-          function gtag() { dataLayer.push(arguments); }
+          // gtag.js only recognises the Arguments object itself; a rest-parameter
+          // array is silently ignored, so this must stay as Google ships it.
+          function gtag() {
+            // eslint-disable-next-line prefer-rest-params
+            dataLayer.push(arguments);
+          }
           gtag('js', new Date());
           gtag('config', id);
         </script>
@@ -125,7 +134,7 @@ const canonicalURL = new URL(Astro.url.pathname, SITE.url);
               if (!response.ok) throw new Error(`Form submission failed (${response.status})`);
 
               window.location.assign(form.dataset.successUrl || '/thank-you/');
-            } catch (err) {
+            } catch {
               errorEl?.removeAttribute('hidden');
               if (submitBtn) {
                 submitBtn.disabled = false;

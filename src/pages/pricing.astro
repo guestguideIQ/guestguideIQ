@@ -62,24 +62,30 @@ const faqs = [
     <div class="wrap upsell-inner">
       <div>
         <span class="eyebrow upsell-eyebrow">The guest upsell engine</span>
-        <h2>Your guidebook becomes a <span class="accent-word">revenue line.</span></h2>
+        <h2>
+          Your guidebook becomes a <span class="accent-word">revenue line.</span>
+        </h2>
         <p class="lead">
           Turn on the storefront inside your guide and offer guests the extras they already want.
           Payments are processed securely and paid out to you. We keep a flat {UPSELL_FEE} of each
           sale and nothing more.
         </p>
-        <p class="lead">
-          At $12 a month, a single late check-out can cover a Solo Host plan.
-        </p>
+        <p class="lead">At $12 a month, a single late check-out can cover a Solo Host plan.</p>
       </div>
       <div class="upsell-card">
         <span class="upsell-head">Ideas hosts sell</span>
         <ul>
-          {upsellIdeas.map((u) => <li>{u}</li>)}
+          {upsellIdeas.map((u) => (
+            <li>{u}</li>
+          ))}
         </ul>
         <div class="upsell-fee">
           <span class="fee">{UPSELL_FEE}</span>
-          <span>per transaction,<br />only when you sell</span>
+          <span>
+            per transaction,
+            <br />
+            only when you sell
+          </span>
         </div>
       </div>
     </div>

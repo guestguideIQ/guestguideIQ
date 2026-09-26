@@ -14,10 +14,20 @@ const width = Math.round((height * 380.48) / 86.71);
 ---
 
 {variant === 'dark' ? (
-  <img src="/brand/guestguideiq-horizontal-dark.svg" alt="GuestGuideIQ" width={width} height={height} />
+  <img
+    src="/brand/guestguideiq-horizontal-dark.svg"
+    alt="GuestGuideIQ"
+    width={width}
+    height={height}
+  />
 ) : (
   <picture>
     <source srcset="/brand/guestguideiq-horizontal-dark.svg" media="(prefers-color-scheme: dark)" />
-    <img src="/brand/guestguideiq-horizontal-light.svg" alt="GuestGuideIQ" width={width} height={height} />
+    <img
+      src="/brand/guestguideiq-horizontal-light.svg"
+      alt="GuestGuideIQ"
+      width={width}
+      height={height}
+    />
   </picture>
 )}

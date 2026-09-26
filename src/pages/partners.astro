@@ -7,13 +7,21 @@ const partnerTypes = [
     kicker: 'Property management platforms',
     title: 'Integrate with GuestGuideIQ',
     body: 'If you build a PMS, channel manager or pricing tool, a GuestGuideIQ integration lets your hosts turn every listing into an auto-updating guidebook without leaving your platform.',
-    points: ['Listing and reservation sync', 'Marketplace and app-store listings', 'Co-marketing to shared customers'],
+    points: [
+      'Listing and reservation sync',
+      'Marketplace and app-store listings',
+      'Co-marketing to shared customers',
+    ],
   },
   {
     kicker: 'Local businesses & experiences',
     title: 'Get recommended at the right moment',
     body: 'Tour operators, private chefs, rental companies and local favorites can reach guests inside the guide while they’re planning their day.',
-    points: ['Featured placement in nearby guides', 'Bookable through the guest storefront', 'Affiliate and referral options'],
+    points: [
+      'Featured placement in nearby guides',
+      'Bookable through the guest storefront',
+      'Affiliate and referral options',
+    ],
   },
   {
     kicker: 'Smart home & in-room hardware',
@@ -25,7 +33,11 @@ const partnerTypes = [
     kicker: 'Boutique hotels & glamping',
     title: 'The same concierge, at a bigger scale',
     body: 'Local curation, a guest app that needs no download, and on-property upsells matter just as much to boutique hotels and luxury glamping sites. We’d like to hear from early design partners.',
-    points: ['Multi-room and multi-site guides', 'Digital check-in on the roadmap', 'White-label on your domain'],
+    points: [
+      'Multi-room and multi-site guides',
+      'Digital check-in on the roadmap',
+      'White-label on your domain',
+    ],
   },
 ];
 ---
@@ -38,8 +50,8 @@ const partnerTypes = [
     <span class="eyebrow">Partner with GuestGuideIQ</span>
     <h1>Better guest experiences are a team effort.</h1>
     <p class="lead">
-      GuestGuideIQ sits at the moment a guest decides what to do, what to book and how to get
-      in. These are the partners we’re looking for to make that moment better.
+      GuestGuideIQ sits at the moment a guest decides what to do, what to book and how to get in.
+      These are the partners we’re looking for to make that moment better.
     </p>
   </section>
 
@@ -50,7 +62,9 @@ const partnerTypes = [
         <h2>{p.title}</h2>
         <p class="muted">{p.body}</p>
         <ul class="check-list">
-          {p.points.map((pt) => <li>{pt}</li>)}
+          {p.points.map((pt) => (
+            <li>{pt}</li>
+          ))}
         </ul>
       </article>
     ))}
