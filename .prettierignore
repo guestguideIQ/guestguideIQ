@@ -1,4 +1,4 @@
-# Formatting scope is the marketing site only — see eslint.config.js for why.
+# Formatting scope is the marketing site only — see src/eslint.config.js for why.
 dist
 .astro
 node_modules
