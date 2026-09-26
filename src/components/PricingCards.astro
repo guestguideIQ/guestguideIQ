@@ -14,7 +14,9 @@ import { plans } from '../data/pricing';
       </p>
       <p class="plan-annual muted">{plan.annual ?? 'Tailored to your portfolio'}</p>
       <ul class="check-list">
-        {plan.features.map((f) => <li>{f}</li>)}
+        {plan.features.map((f) => (
+          <li>{f}</li>
+        ))}
       </ul>
     </article>
   ))}
@@ -46,7 +48,9 @@ import { plans } from '../data/pricing';
 
   .plan.featured {
     border-color: var(--accent);
-    box-shadow: 0 0 0 1px var(--accent), var(--shadow);
+    box-shadow:
+      0 0 0 1px var(--accent),
+      var(--shadow);
   }
 
   .plan-flag {

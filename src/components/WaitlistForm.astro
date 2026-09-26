@@ -15,8 +15,8 @@ const { id = 'waitlist', compact = false, onDark = false } = Astro.props;
     <>
       <h2>Claim your guide before we launch.</h2>
       <p class="lead">
-        We’re opening GuestGuideIQ to a small group of hosts first. Leave your email and we’ll
-        send your invite, along with early-access pricing.
+        We’re opening GuestGuideIQ to a small group of hosts first. Leave your email and we’ll send
+        your invite, along with early-access pricing.
       </p>
     </>
   )}
@@ -27,7 +27,9 @@ const { id = 'waitlist', compact = false, onDark = false } = Astro.props;
     data-ajax-form
     data-success-url="/thank-you/"
   >
-    <label class="sr-only" for={`${id}-email`}>Email address</label>
+    <label class="sr-only" for={`${id}-email`}>
+      Email address
+    </label>
     <input
       id={`${id}-email`}
       type="email"
@@ -36,9 +38,13 @@ const { id = 'waitlist', compact = false, onDark = false } = Astro.props;
       placeholder="you@yourproperty.com"
       autocomplete="email"
     />
-    <button class="btn btn-primary" type="submit">Get Early Access</button>
+    <button class="btn btn-primary" type="submit">
+      Get Early Access
+    </button>
   </form>
-  <p class="form-note">We’ll only email you about your GuestGuideIQ invite. No spam, unsubscribe anytime.</p>
+  <p class="form-note">
+    We’ll only email you about your GuestGuideIQ invite. No spam, unsubscribe anytime.
+  </p>
   <p class="form-error" data-form-error hidden>
     Something went wrong sending that. Please try again, or email us at hello@guestguideiq.com.
   </p>

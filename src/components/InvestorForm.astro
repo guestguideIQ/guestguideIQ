@@ -34,10 +34,17 @@ const { id = 'investor-form' } = Astro.props;
 
   <div class="field">
     <label for={`${id}-message`}>Message</label>
-    <textarea id={`${id}-message`} name="message" required placeholder="What would you like to know?"></textarea>
+    <textarea
+      id={`${id}-message`}
+      name="message"
+      required
+      placeholder="What would you like to know?"
+    ></textarea>
   </div>
 
-  <button class="btn btn-primary" type="submit">Request Info</button>
+  <button class="btn btn-primary" type="submit">
+    Request Info
+  </button>
   <p class="form-error" data-form-error hidden>
     Something went wrong sending that. Please try again, or email us at hello@guestguideiq.com.
   </p>
