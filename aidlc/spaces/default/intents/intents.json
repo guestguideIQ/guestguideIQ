@@ -25,5 +25,16 @@
       "guestguideiq-app"
     ],
     "status": "in-flight"
+  },
+  {
+    "uuid": "01a0e4bb-365d-7575-917e-c0fdfb4078e2",
+    "slug": "places-filters",
+    "dirName": "260927-places-filters",
+    "scope": "feature",
+    "repos": [
+      "guestguideiq-app",
+      "guestguideiq-frontend"
+    ],
+    "status": "complete"
   }
 ]

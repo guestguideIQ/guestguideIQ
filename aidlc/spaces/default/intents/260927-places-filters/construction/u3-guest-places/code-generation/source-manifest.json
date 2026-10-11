@@ -1,0 +1,95 @@
+{
+  "stage": "code-generation",
+  "unit": "u3-guest-places",
+  "version": 1,
+  "writes": [
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/CollapsibleSection.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/filterControls.scenarios.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/GuestSurface.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guest.css"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/GuestGuideView.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/GuideTabs.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlaceCard.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlaceCategorySection.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlacesFilterBar.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlacesPanel.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlacesResultLine.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/guestContent.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/guestPlaces.scenarios.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/placeFilterOptions.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/placeFilterOptions.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/placeGroups.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/placeGroups.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/useMomentRefresh.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/usePlaceChoices.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/filterablePlace.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placeFilters.scenarios.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placeFilters.test.ts"
+    }
+  ]
+}

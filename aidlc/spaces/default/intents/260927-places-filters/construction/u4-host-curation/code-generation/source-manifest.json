@@ -1,0 +1,99 @@
+{
+  "stage": "code-generation",
+  "unit": "u4-host-curation",
+  "version": 1,
+  "writes": [
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlaceCategorySection.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlacesFilterBar.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlacesPanel.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/PlacesResultLine.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/placeFilterOptions.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/guest/guide/placeFilterOptions.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/LocalityCuration.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/LocalityCuration.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/PlacePicker.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/curationFocus.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/curationFocus.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/hostCuration.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/hostPlaces.scenarios.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/useFollowAction.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/billing/useFollowAction.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/owner/owner.css"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places-ui/PlaceCategorySection.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places-ui/PlacesFilterBar.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places-ui/PlacesResultLine.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places-ui/placeFilterOptions.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places-ui/placeFilterOptions.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/contract.scenarios.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/hostStance.ts"
+    }
+  ]
+}

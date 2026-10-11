@@ -1,0 +1,19 @@
+{
+  "stage": "functional-design",
+  "unit": "u1-places-api",
+  "upstream_ids": ["FR2.2", "FR10.1", "FR10.2", "FR10.3", "FR10.4", "FR10.5", "NFR6"],
+  "coverage": [
+    { "id": "FR2.2", "status": "OK", "target": "BR1.1" },
+    { "id": "FR10.1", "status": "OK", "target": "BR1.1, BR1.2, BR1.3" },
+    { "id": "FR10.2", "status": "OK", "target": "BR2.1, BR2.2" },
+    { "id": "FR10.3", "status": "OK", "target": "BR3.1, BR3.3, BR3.4" },
+    { "id": "FR10.4", "status": "OK", "target": "BR4.1, BR3.5" },
+    { "id": "FR10.5", "status": "OK", "target": "BR5.1" },
+    { "id": "NFR6", "status": "OK", "target": "BR4.1, BR4.2" }
+  ],
+  "reverse": [
+    { "id": "BR1.4", "status": "N/A", "target": "Security constraint from NFR4 and ADR-001; NFR4 is owned by u2-places-foundation in the unit map" },
+    { "id": "BR2.3", "status": "N/A", "target": "Preserves existing stay-expiry behaviour after the timezone rule moves into a shared helper" },
+    { "id": "BR3.2", "status": "N/A", "target": "Existing authorization kept unchanged; stated so the enrichment cannot weaken it" }
+  ]
+}

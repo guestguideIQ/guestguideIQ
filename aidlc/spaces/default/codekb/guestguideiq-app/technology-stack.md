@@ -1,96 +1,69 @@
 # Technology Stack — `guestguideiq-app`
 
-**Derived from**: the developer full-repo scan of 2026-09-07. Versions are as declared in the four `package.json` files; `package-lock.json` was consulted for the dependency list only, not for resolved transitive versions. Dependency relationships and risk analysis live in `dependencies.md`.
+**Derived from** two passes:
+- The **prior full scan** at `76d190d` (2026-09-07). Most of this file comes from it and is *carried forward, not re-verified*.
+- The **focused scan of 2026-09-30** at `ce69629`. It re-confirmed the versions and the data-layer facts marked "(verified at `ce69629`)".
+
+Dependency relationships are in `dependencies.md`.
 
 ---
 
-## Languages and Runtimes
+## Languages and Runtimes *(carried forward, not re-verified)*
 
-| Item | Value |
+| Item | Value at `76d190d` |
 |---|---|
 | Language | TypeScript (both services and both CDK apps) |
 | Declared engine | `engines.node >= 18.18` |
 | Container base | `node:20-slim` |
-| CI runtime | Node **24** |
-| Compile target | ES2022, module CommonJS |
-| Data layer language | Prisma DSL + SQL (one applied migration) |
+| CI runtime | Node 24 |
+| Compile target | ES2022, CommonJS |
 
-**Three different Node majors are in play** — 18.18 declared, 20 shipped, 24 tested. The tested runtime is not the shipped runtime.
+At `76d190d` three Node major versions were in play: 18.18 declared, 20 shipped and 24 tested.
 
-## Build and Tooling
-
-| Concern | Tool |
-|---|---|
-| Package manager | npm (four independent lockfiles, no workspaces) |
-| Compiler | `tsc` — **no bundler** |
-| Dev loop | `tsx watch src/server.ts` |
-| Test runner | Vitest (`environment: 'node'`, `globals: false`, `testTimeout: 10000`) |
-| HTTP test client | Supertest; `nock` in u2 for outbound interception |
-| Coverage | `@vitest/coverage-v8`, provider `v8`, reporters text/html/lcov |
-| Linter | ESLint 8 with `@typescript-eslint` 7 |
-| Formatter | Prettier 3 |
-| Packaging | Multi-stage Docker, `runtime` and `migrate` targets, non-root user |
-| IaC | AWS CDK v2 |
-| CI | GitHub Actions, one workflow file |
-
-## u1 `backend-api` — runtime dependencies
+## Core Libraries (verified at `ce69629` by the developer scan)
 
 | Package | Version | Purpose |
 |---|---|---|
-| `fastify` | ^5.12.3 | HTTP framework for **both** listeners |
-| `@fastify/cors` | ^11.3.0 | CORS — **the only Fastify plugin registered** |
-| `@prisma/client` | ^5.18.0 | PostgreSQL ORM client |
-| `jsonwebtoken` | ^9.0.2 | Access, refresh, and internal-service JWTs |
-| `bcryptjs` | ^3.0.3 | Password hashing (pure-JS, not native `bcrypt`) |
-| `pino` | ^9.3.2 | Structured logging with field redaction |
-| `stripe` | ^16.8.0 | Subscription billing adapter |
-| `@opentelemetry/sdk-node` | ^0.222.0 | Tracing SDK, opt-in via `OTEL_ENABLED` |
-| `@opentelemetry/instrumentation-http` | ^0.222.0 | HTTP auto-instrumentation |
-| `@opentelemetry/api` | ^1.9.1 | OTel API |
-| `@opentelemetry/resources` | ^2.11.0 | Resource attributes |
-| `@opentelemetry/semantic-conventions` | ^1.43.0 | Attribute names |
+| `fastify` | ^5.12.3 | HTTP server |
+| `@fastify/cors` | ^11.3.0 | CORS |
+| `@prisma/client` / `prisma` | ^5.18.0 | ORM and migrations |
+| `vitest` | ^5.0.0 | Tests and coverage |
+| `typescript` | ^5.5.4 | Compiler |
 
-Notably absent: no validation library (no `zod`, `ajv` beyond Fastify's own, `joi`, or `class-validator`), no `@fastify/multipart`, no Redis client, no mailer, no OpenAPI generator.
+The other runtime dependencies are carried forward from `76d190d`: `jsonwebtoken` ^9.0.2, `bcryptjs` ^3.0.3, `pino` ^9.3.2, `stripe` ^16.8.0 and the OpenTelemetry packages. The dev toolchain is also carried forward: ESLint 8 with `@typescript-eslint` 7, Prettier 3, `supertest`, `tsx` and `@vitest/coverage-v8`. u2 adds `axios` ^1.7.4 and `nock`.
 
-## u1 — dev dependencies
+## Data Layer (verified at `ce69629`)
 
-`typescript` ^5.5.4 · `vitest` ^5.0.0 · `@vitest/coverage-v8` ^5.0.0 · `supertest` ^7.0.0 · `prisma` ^5.18.0 · `tsx` ^4.17.0 · `eslint` ^8.57.0 · `@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin` ^7.18.0 · `eslint-config-prettier` ^9.1.0 · `prettier` ^3.3.3 · `pino-pretty` ^11.2.2 · `@types/node` ^24.13.3 · `@types/jsonwebtoken` · `@types/supertest`
+| Concern | Technology | Relevance to `260927-places-filters` |
+|---|---|---|
+| Database | PostgreSQL (RDS in production) | — |
+| Spatial support | **None. There is no PostGIS extension** (`schema.prisma:433-437`). | Distance and nearby are computed in TypeScript (`src/poi/geo.ts`: haversine plus a bounding box), backed by a plain `@@index([latitude, longitude])`. That is fine for a host's small pick list and for a 200 km locality search. It is not a spatial index. |
+| Taxonomy table | `poi_categories`, created outside Prisma | Category filters read it through `PoiCategory`. |
+| Materialized view | `locality_category_counts` (unmodelled) | Counts legacy `pois.category`. It is not usable for per-property category counts. |
+| Time handling | IANA zone strings on `LocalityEntity`, `Property` and `Area`; `src/lib/dayBoundary.ts` `endOfDayInZone` | No date library dependency was reported. `PlaceHours` times are plain `HH:MM` strings with no parser. |
 
-## u2 `admin-api`
+## Integrations Relevant to the Intent (verified or skimmed at `ce69629`)
 
-**Runtime**: `fastify` ^5.12.3 · `axios` ^1.7.4 · `jsonwebtoken` ^9.0.2 · `pino` ^9.3.2
-**Dev**: the same toolchain as u1, plus `nock` ^13.5.4
-**Absent**: no Prisma, no Stripe, no OpenTelemetry SDK
+- **Maps: none in the backend.** There is no map SDK, map key or geocoding client. `src/config.ts` has only Google OAuth keys (`:26-45`). A Google Maps JavaScript key would live only in the frontend: it is public and must be domain-restricted.
+- **No CSP or helmet in `src/app.ts`.** Map script and tile origins must be allowed by the frontend host's security headers (see `team.md` Deployment).
+- **Geocoding** is referenced only as an out-of-band path in schema comments (`Property.geocodeQuality`, `geocodedAt`, `schema.prisma:230-240`). No geocoder is wired in `src/`.
+- **Content loading.** `.github/workflows/load-locality-content.yml` runs `prisma/seedLocalityContent.ts` as a one-off ECS task with OIDC. It is the only production content producer found, and its `LocalityPOI` type has no coordinate field.
 
-`axios` was chosen over native `fetch` specifically because `nock` intercepts Node's `http`/`https` modules, which native `fetch` does not — a testability-driven dependency choice, documented as such.
+## Build, CI and AWS *(carried forward from `76d190d`, not re-verified)*
 
-## Infrastructure
+- npm with four independent lockfiles, `tsc` and no bundler.
+- Multi-stage Docker.
+- AWS CDK v2.
+- One CI workflow at `76d190d`. A second one (`load-locality-content.yml`) now exists; only its name was observed.
+- AWS services in use: VPC, ECS Fargate, ALB, RDS PostgreSQL 16, Secrets Manager, CloudWatch, ACM, SSM, WAF and GitHub OIDC.
+- Not present at `76d190d`: Route 53, SES, Redis, S3 and API Gateway. The guest `GuestMedia.url` comment mentions a "media bucket" served at `/media/<key>`, so S3 may now exist. That is unverified.
 
-| Package | Version |
-|---|---|
-| `aws-cdk-lib` | ^2.150.0 |
-| `constructs` | ^10.3.0 |
-| `aws-cdk` (CLI) | ^2.150.0 |
+## Version Risks *(carried forward, not re-verified)*
 
-Both CDK apps declare the same three.
+- ESLint 8 has reached end of life.
+- `@types/node` ^24 is ahead of the shipped Node 20.
+- Three Node major versions are in play.
 
-## AWS Services in Use
+## Relevance to the Frontend
 
-VPC · ECS Fargate · Application Load Balancer · RDS PostgreSQL 16 · Secrets Manager · CloudWatch Logs · ACM (a hardcoded production certificate ARN) · SSM Parameter Store (u2 reads parameters u1 does not publish) · WAF (u2's IP allowlist) · GitHub OIDC for deploy credentials.
-
-**Not present**: Route 53 (no DNS construct anywhere), SES or any mail transport, ElastiCache/Redis, S3 or any object storage, API Gateway.
-
-## Version Risks
-
-| Risk | Detail |
-|---|---|
-| `eslint` 8.x | EOL upstream; `@typescript-eslint` 7.x trails the current 8.x line |
-| `vitest` / `@vitest/coverage-v8` | Pinned to a `^5.0.0` major |
-| `@types/node` ^24 | Far ahead of both the declared `>=18.18` engine and the `node:20-slim` image — type definitions describe APIs the shipped runtime does not have |
-| Three Node majors | 18.18 declared / 20 shipped / 24 tested |
-
-## Relevance to the Frontend Intent
-
-The backend's **tech stack does not constrain the frontend's** — the two repos share no code, no types, and no npm linkage, and there is no published client package to consume. What the frontend inherits is the *shape* of the toolchain, not the packages: TypeScript with the same strict compiler flags, Vitest, ESLint + Prettier as blocking gates, a typecheck step distinct from build, and the full CI security chain. Frontend framework and hosting remain open choices.
-
-One concrete carry-over: because there is **no machine-readable API contract** and no shared types package, the frontend will hand-write and independently maintain every request/response type in this stack. Either accepting that duplication or introducing a generated contract is a decision the frontend design owes an answer to.
+The backend stack does not constrain the frontend framework. There is still **no machine-readable contract**; the hand-kept `docs/frontend-contract-delta.md` is the nearest thing. New guest place fields added for this intent (coordinates, distance, zone or `openNow`) will have to be mirrored by hand in the frontend's API-client types. That is a contract-drift point for the team's live-backend E2E suite to guard.
