@@ -138,9 +138,13 @@ Decisions the human made after approval:
 - **Deploy the backend. Done on 2026-10-11**, by running the deploy workflow on `main` at `8296338`. It shipped two commits since the previous deploy (`2f1dd72`): the dependency updates and the feature. There was no database migration. The deploy job and the post-deploy smoke test against the live API both passed.
   - **This was a deliberate departure from a project rule, made by the human.** The rule reads: "NEVER deploy the backend to production without first passing through staging and receiving manual approval". No staging environment exists; the staging jobs are skipped by design. The human was told this before the deploy was started and directed it to go ahead. The manual approval half of the rule was met; the staging half could not be. The cost is that the first place this code met real infrastructure was production, covered only by CI and the smoke test. The earlier deploys ran the same way.
 
-**What is live:** the backend. **What is not:** the frontend. Its production deploy is started by hand and has not been run, so guests and hosts do not see the filters yet.
+- **Deploy the frontend. Done on 2026-10-11**, at the human's instruction, by running the deploy workflow on `main` at `c9bbbf6`. The production deploy job and the post-deploy check both passed. Like the backend, it went straight to production because no staging stack exists, which departs from the same project rule; the human was told and directed it.
 
-Found along the way: this workspace repository's own dependency scan also fails on `main` (5 advisories in build tooling), which fails the scan on the pull request that carries this record. A lockfile-only fix is open as guestguideIQ#16. It was not merged by the agent, because merging to `main` here rebuilds and publishes the marketing site.
+**Both the backend and the frontend are live.** Guests and hosts now have the places filters, including the "Open now" change.
+
+Found along the way: this workspace repository's own dependency scan also failed on `main` (5 advisories in build tooling). A lockfile-only fix was merged as guestguideIQ#16 at the human's instruction.
+
+The pull request that carries this record (guestguideIQ#15) is blocked by its secret scan, which reports seven findings under its generic API-key rule. All seven are false positives: six are content-hash markers the workflow writes into a stage diary, of the form `aidlc-wave-memory:u1-places-api:` followed by a 64-character hash, and one is a line in the audit trail that names the unit `u1-places-api`. The unit's name contains "api", and the rule matches that next to a long string. No credential is involved. Earlier records on `main` carry the same kind of marker. Resolving it needs either a narrow allowlist for the scanner or a decision not to merge the record this way; that is a change to a security control and is left to the human.
 
 ## Known Limitations
 
