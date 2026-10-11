@@ -134,10 +134,13 @@ How the targets stand now:
 Decisions the human made after approval:
 
 - **Accessibility checks are deferred.** Keyboard scenarios and the hand checks stand for this work.
-- **"Open now" should hold whatever timezone the phone is set to.** Taken to mean: "today" in the guide is the property's day, not the phone's, so a guest whose phone is on another zone's time still sees "Open now" judged at the property. A change for this was started on a new frontend branch, `feature/open-now-property-day`, and is **not finished**: the code and tests are edited but uncommitted, and the full checks had not been run when work stopped.
-- **Deploy the backend.** Requested, **not yet done.** The production deploy is started by hand. It would ship two commits since the last deploy (`2f1dd72`): the dependency updates and the feature. There is no new database migration. No staging environment exists, so the project rule that a production deploy first passes through staging cannot be met; that is how the previous deploys ran too, and it is the human's call.
+- **"Open now" should hold whatever timezone the phone is set to.** Taken to mean: "today" in the guide is the property's day, not the phone's, so a guest whose phone is on another zone's time still sees "Open now" judged at the property. The human was told this reading and said to proceed on reasonable assumptions. **Done and merged** as guestguideiq-frontend#42 (`c9bbbf6`): with the property's zone known, the day rail, the header's day and the open filter use the date at the property; without it they fall back to the phone's date. 928 tests pass with the machine clock on four timezones. It was not looked at in a browser.
+- **Deploy the backend. Done on 2026-10-11**, by running the deploy workflow on `main` at `8296338`. It shipped two commits since the previous deploy (`2f1dd72`): the dependency updates and the feature. There was no database migration. The deploy job and the post-deploy smoke test against the live API both passed.
+  - **This was a deliberate departure from a project rule, made by the human.** The rule reads: "NEVER deploy the backend to production without first passing through staging and receiving manual approval". No staging environment exists; the staging jobs are skipped by design. The human was told this before the deploy was started and directed it to go ahead. The manual approval half of the rule was met; the staging half could not be. The cost is that the first place this code met real infrastructure was production, covered only by CI and the smoke test. The earlier deploys ran the same way.
 
-Nothing from this work is live. Merging to `main` did not deploy either repository.
+**What is live:** the backend. **What is not:** the frontend. Its production deploy is started by hand and has not been run, so guests and hosts do not see the filters yet.
+
+Found along the way: this workspace repository's own dependency scan also fails on `main` (5 advisories in build tooling), which fails the scan on the pull request that carries this record. A lockfile-only fix is open as guestguideIQ#16. It was not merged by the agent, because merging to `main` here rebuilds and publishes the marketing site.
 
 ## Known Limitations
 
