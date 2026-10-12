@@ -1,0 +1,14 @@
+{
+  "stage": "functional-design",
+  "unit": "u3-guest-places",
+  "upstream_ids": ["FR1.3", "FR4.1", "FR6.2", "FR7.2", "FR7.4", "FR8.3"],
+  "coverage": [
+    { "id": "FR1.3", "status": "OK", "target": "functional-spec.md > W1 step 5 and scenarios S1, S12; the rule itself is foundation BR7.1 in u2-places-foundation" },
+    { "id": "FR4.1", "status": "OK", "target": "functional-spec.md > W1 step 2, W2 step 1, the Open chip label table and scenarios S2 to S5; the mode rule is foundation BR2.7" },
+    { "id": "FR6.2", "status": "OK", "target": "functional-spec.md > W6 and scenarios S6, S7; frontend-components.md > Place card" },
+    { "id": "FR7.2", "status": "OK", "target": "functional-spec.md > W2 step 4 and scenario S8; the count is foundation BR7.2" },
+    { "id": "FR7.4", "status": "OK", "target": "functional-spec.md > W3 step 4 and scenario S9; the reset is foundation BR7.3" },
+    { "id": "FR8.3", "status": "OK", "target": "functional-spec.md > W1 error paths, the Empty row of Screen States and scenarios S10, S11" }
+  ],
+  "reverse": []
+}

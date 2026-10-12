@@ -1,0 +1,39 @@
+{
+  "unit": "u4-host-curation",
+  "stage": "code-generation",
+  "upstream_ids": [
+    "FR4.2",
+    "FR9.1",
+    "FR9.2",
+    "FR9.4",
+    "FR11.5"
+  ],
+  "coverage": [
+    {
+      "id": "FR4.2",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/owner/billing/PlacePicker.tsx"
+    },
+    {
+      "id": "FR9.1",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/owner/billing/PlacePicker.tsx"
+    },
+    {
+      "id": "FR9.2",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/owner/billing/hostPlaces.scenarios.test.tsx"
+    },
+    {
+      "id": "FR9.4",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/owner/billing/curationFocus.ts"
+    },
+    {
+      "id": "FR11.5",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/owner/billing/hostPlaces.scenarios.test.tsx"
+    }
+  ],
+  "reverse": []
+}

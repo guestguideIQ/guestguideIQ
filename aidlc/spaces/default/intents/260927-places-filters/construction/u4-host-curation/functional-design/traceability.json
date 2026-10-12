@@ -1,0 +1,13 @@
+{
+  "stage": "functional-design",
+  "unit": "u4-host-curation",
+  "upstream_ids": ["FR4.2", "FR9.1", "FR9.2", "FR9.4", "FR11.5"],
+  "coverage": [
+    { "id": "FR4.2", "status": "OK", "target": "functional-spec.md > W1 step 4, the No timezone row of Screen States and scenarios S2, S3; the mode rule is foundation BR2.7 in u2-places-foundation" },
+    { "id": "FR9.1", "status": "OK", "target": "functional-spec.md > section 2, W1, W2, section 3a and scenarios S1, S4, S8, S11, S12; the rules are foundation BR1 to BR5" },
+    { "id": "FR9.2", "status": "OK", "target": "functional-spec.md > W3 steps 2 and 3 and scenarios S5, S6" },
+    { "id": "FR9.4", "status": "OK", "target": "functional-spec.md > W3 and scenarios S6, S7, S13; frontend-components.md > Host place actions" },
+    { "id": "FR11.5", "status": "OK", "target": "functional-spec.md > W5 and scenario S9; the no-storage rule is foundation BR8.2" }
+  ],
+  "reverse": []
+}

@@ -1,188 +1,251 @@
 # Component Inventory — `guestguideiq-app`
 
-**Derived from**: the developer full-repo scan of 2026-09-07. Every `routes.ts` and `service.ts` was read line by line; repository **port interfaces and record types** were read; repository **Prisma adapter bodies** were skimmed at query-shape granularity only (see `reverse-engineering-timestamp.md` for the exact split).
+**Derived from** two passes:
+- The **focused scan of 2026-09-30** at `ce69629`. It verified the components `persistence` (schema only), `poi`, `guide`, `guestcontext`, `destination`, `locality` and `guestaccess`.
+- The **prior full scan** at `76d190d`, preserved for the rest and marked *(carried forward, not re-verified)*.
 
-Headings below are the canonical component names used by the scope block in `reverse-engineering-timestamp.md`. Endpoint contracts belong to `api-documentation.md` and are not repeated here.
+The `###` headings below are the canonical component names that the scope block in `reverse-engineering-timestamp.md` uses. Endpoint contracts are in `api-documentation.md`.
+
+**Health ratings:**
+- **healthy**: sound and well tested for its purpose.
+- **at-risk**: sound code, with a gap that blocks or complicates the current intent.
+- **degraded**: known defects.
+
+Components carried forward keep the prior scan's assessment, which may be stale.
 
 ---
 
-## Domain components (u1 `backend-api`)
-
-All ten follow the identical triad `repository.ts` → `service.ts` → `routes.ts`, wired only in `src/wiring.ts`.
-
-### identity
-
-**Responsibility**: Account lifecycle and all Property Owner authentication — signup (atomically creating the Account and its single Property), login, password-reset request and confirm, access/refresh token issuance and rotation.
-**Depends on**: `locality` (to resolve the tenant from the request `Host` at signup), `auth` (JWT signing/verification, refresh-token store), `bcryptjs`, its own Prisma adapter.
-**Depended on by**: every authenticated route, indirectly via `auth`.
-**Notes**: `requestPasswordReset` returns a `{ resetToken }` that `routes.ts` discards — there is no delivery mechanism, so reset confirm is dead in practice.
-
-### onboarding
-
-**Responsibility**: The four-step property-setup state machine (`property_basics` → `content_source` → `content_review` → `confirm`), including seeding guide content either from scratch or from caller-supplied pre-extracted PDF sections.
-**Depends on**: `guide` (to seed sections), its own Prisma adapter.
-**Depended on by**: nothing — it is a leaf entry point.
-**Notes**: Enforces strict ordering with `409 CONFLICT`. Performs no PDF parsing of its own.
-
-### guide
-
-**Responsibility**: The Property Guide aggregate — sections, draft/published status, and favourites over locality-curated POIs and Events. Lazily creates an empty draft on first read.
-**Depends on**: `poi` and `event` (to validate that a favourite belongs to the property's own locality), `guide/propertyLookup.ts`, its own Prisma adapter.
-**Depended on by**: `onboarding` (seeding), `guestaccess` (published read).
-**Notes**: Section updates are a full replace of the array, not a merge.
+## Domain components verified at `ce69629`
 
 ### poi
 
-**Responsibility**: Curated Points of Interest for a locality brand — the owner-facing list read and the internal/ops create.
-**Depends on**: its own Prisma adapter.
-**Depended on by**: `guide` (favourite validation), `chatmodule` (curated-item count for the sparse fallback), `internal` and `admin-api` (create).
+**Health**: at-risk. The code is sound and the geo logic is well tested; the problem is its reachability and its data.
 
-### event
+**Responsibility**:
+- The locality place catalogue.
+- The owner-facing catalogue read (`GET /v1/pois?propertyId=`).
+- The pure geo helpers in `geo.ts`: `haversineMeters`, `boundingBox` and `isValidLatLng`.
+- A two-stage nearby search (`POIService.nearby`) and `nearProperty`, which reads property coordinates through `propertyCoordinates.ts`.
 
-**Responsibility**: Curated local Events — the owner-facing list read (active only) and the internal/ops audit list (`includeExpired`).
-**Depends on**: its own Prisma adapter.
-**Depended on by**: `guide` (favourite validation), `chatmodule` (curated-item count), `internal` and `admin-api` (audit list).
+**Depends on**: `persistence`.
 
-### subscription
+**Depended on by**:
+- `guide`, which builds `GuestPOIView` from POI rows.
+- `destination` and `event`, which use the haversine helpers.
+- `chatmodule`, which counts curated items *(carried forward)*.
 
-**Responsibility**: The single-tier `standard` subscription — create, upgrade, downgrade, cancel — over a Stripe adapter.
-**Depends on**: `subscription/stripeAdapter.ts` (skimmed, not read line by line), its own Prisma adapter.
-**Depended on by**: nothing.
-**Notes**: `upgrade`/`downgrade` are no-ops on `plan` today; the route's fallthrough branch is `cancel`, and there is no read endpoint.
+**Notes**:
+- `nearby` and `nearProperty` are **unrouted** (`service.ts:97-99, 178-200, 257-261`).
+- The owner projection has six fields plus `hostAdded` (`service.ts:219-227`).
+- `browseByLocality` filters by published status, contradicting its interface comment (TD-26).
+- The bounding-box antimeridian clamp is a documented limit (`geo.ts:57-59`).
+- The catalogue is unpaginated (`repository.ts:166-171`).
 
-### guestaccess
+### guide
 
-**Responsibility**: Stay-token-scoped guest access — resolving a `Stay` from its opaque token, enforcing the `Host`-to-locality-brand match (BR8.3), and assembling the guest view of property, locality branding, and published guide.
-**Depends on**: `locality` (host resolution and branding), `guide` (published sections), `auth` (`requireStayToken` middleware), its own Prisma adapter.
-**Depended on by**: `chatmodule` (shares the same stay-token middleware).
-**Notes**: `createStayService` / `StayService.createStay` (lines 62–77) are **dead code — referenced by nothing**. No component and no endpoint creates a `Stay`. This is the gap that blocks the whole Guest frontend; see `api-documentation.md` § A.9.
+**Health**: at-risk, because it projects without coordinates and still reads the deprecated favourite list.
 
-### chatmodule
+**Responsibility**:
+- The guide aggregate: sections, publish state and favourites.
+- The guest projection `GuestPOIView`, through `toGuestPOI` (`service.ts:231-254`), and the owner view.
+- The legacy `HostNote`-driven `recommended` and ordering (`service.ts:189-229, 377-406`).
+- `stayEvents`: the events during the guest's stay window.
 
-**Responsibility**: The guest itinerary chat — persisting the transcript, counting curated locality content to decide the sparse-content fallback, calling the chat provider with one retry, and returning the reply plus the message array.
-**Depends on**: `guestaccess` / `auth` (stay-token resolution), `poi` and `event` (curated-item count), `src/chat/provider.ts`, its own Prisma adapter.
-**Depended on by**: nothing.
-**Notes**: `CHAT_PROVIDER=null` in every environment resolves `NullChatProvider`, which always throws. No endpoint reads the stored transcript back.
+**Depends on**: `poi`, `event` *(carried forward)*, `persistence` and `hostnote` (the legacy stance; not analyzed). The service does not import `guestcontext`. It is the **route layer** (`guide/routes.ts:65-96`) that calls an optional `listings` port (`noteFavourited` and `noteUnfavourited`) to dual-write the `PropertyListing` row.
 
-### leadcapture
+**Depended on by**: `guestaccess` (the guest read) and `onboarding` (seeding; carried forward).
 
-**Responsibility**: Three unauthenticated marketing intake endpoints (waitlist, partner, investor) with per-form required-field validation.
-**Depends on**: its own Prisma adapter (skimmed only).
-**Depended on by**: nothing. Already consumed by the existing marketing site.
-**Notes**: Accepts and stores unlisted extra fields; never deduplicates.
+**Notes**:
+- **`toGuestPOI` drops `latitude` and `longitude`.**
+- The guest set is sourced from the deprecated `GuideContent.favoritedPOIIds` (`service.ts:378`).
+- The guest id arrays list only what resolved; the owner view keeps the full set.
+
+### guestcontext
+
+**Health**: at-risk. It is rich and well tested, but it runs two stance systems side by side, and its hours logic is scoped to the stay window rather than to a date.
+
+**Responsibility**:
+- Enriching the guest guide (`enrichGuestGuide`, `service.ts:408`) into `GuestPlace`, `GuestEvent`, area, advisories and itinerary.
+- Owner curation: `PropertyListing` stance, host note and rank; host-added places; per-place feedback counts; the owner area view (the only client-visible timezone).
+- Guest feedback.
+- Category resolution (`poiCategories.ts:194-247`).
+- The host-place vocabulary (`hostContent.ts:28-37`).
+
+**Depends on**: `guide`, `destination` (area and themes), `persistence`.
+
+**Depended on by**: `guestaccess` (enrichment on the guest read) and the `guide` **routes** (the favourite dual-write through an optional `listings` port).
+
+**Notes**:
+- `hoursOf` (`service.ts:505-529`) filters rules by the stay window.
+- Stance filtering and sorting are at `:417-422, 531-540`.
+- Host-added places probably resolve to the "Other" category (an untested inference).
+- The `locality_category_counts` materialized view counts legacy text and is unmodelled, so it is not usable for per-property counts.
+
+### destination
+
+**Health**: healthy (service only).
+
+**Responsibility**:
+- Area resolution, meaning which `Area` a property falls in, by haversine containment (`service.ts:303-319`).
+- Themes and audiences (`themes.ts`).
+- It supplies `guestcontext`'s area view, which carries the Area's required `timezone`.
+
+**Depends on**: `poi` (the geo helpers), `persistence`.
+
+**Depended on by**: `guestcontext`.
+
+**Notes**: it has **no `routes.ts`**. It is reached only through `guestcontext`.
 
 ### locality
 
-**Responsibility**: The tenancy root — locality brands, their registered domains, host-to-brand resolution, and the `visualStyling` branding blob. Enforces BR9.2 (one domain maps to at most one brand).
-**Depends on**: `locality/domainCache.ts` (skimmed only), its own Prisma adapter.
-**Depended on by**: `identity` (signup host resolution), `guestaccess` (BR8.3 check), `internal` and `admin-api` (brand and domain creation).
-**Notes**: `visualStyling` is an unschematized `Record<string, unknown> | null`. This component is the single point where the Host-header tenancy constraint originates.
+**Health**: healthy for this intent.
 
----
+**Responsibility**:
+- Locality brands.
+- Host-to-tenant resolution (`tenantHost.ts`, `domainCache.ts`).
+- The public `GET /v1/localities/current`, which **deliberately omits `timezone`** (`routes.ts:29-31`).
+- The `visualStyling` branding blob.
+- `LocalityEntity.timezone`, which defaults to `"UTC"`.
 
-## Service component (u2)
+**Depends on**: `persistence`.
 
-### admin-api
+**Depended on by**: `guestaccess` (the stay guard, and the first step of timezone resolution) and `identity` *(carried forward)*.
 
-**Responsibility**: The internal ops back office. Owns **no data**; every `/v1` route is an ops-role-gated delegation into u1's internal API over HTTP, with request bodies validated against real Fastify JSON schemas.
-**Depends on**: u1's internal API **at runtime over HTTP only** (`BACKEND_API_INTERNAL_URL`, default `http://localhost:3001/v1`) — no compile-time dependency, no shared types, no client SDK. Internally: `admin-api/src/internal/client.ts` (axios), `admin-api/src/auth/middleware.ts`, `jsonwebtoken`, `pino`.
-**Depended on by**: nothing.
-**Notes**: The ops-role JWT it verifies is **not issued anywhere in this repo**. A valid Property Owner token reaches it and is rejected with `403`.
+**Notes**: the prior scan named locality as the origin of the Host-header tenancy constraint. The focused scan did not report on whether that has changed.
 
----
+### guestaccess
 
-## Cross-cutting and infrastructure components
+**Health**: healthy. The prior scan's blocking gap is closed.
 
-### app-runtime
+**Responsibility**:
+- The stay-token guard (`requireStayToken`, BR8.1–BR8.3), with a uniform `410`.
+- The guest read `GET /v1/stays/:token`.
+- **The owner stay supply side**: `POST`, `GET`, `PATCH` and `DELETE /v1/stays`, keyed by stay id and ownership-checked through the property.
+- Link building (`link.ts`).
+- Stay expiry in the resolved zone: locality, then property, then UTC (`repository.ts:130`, through `endOfDayInZone`).
 
-**Files**: `src/app.ts`, `src/internalApp.ts`, `src/server.ts`, `src/config.ts`, `src/wiring.ts`, `src/lib/errors.ts`, `src/lib/logger.ts`, `src/lib/otel.ts`, `src/lib/ids.ts`.
-**Responsibility**: Composition and process concerns — building the two Fastify instances, registering CORS, mounting the rate-limit `preHandler`, the central error handler that produces the shared envelope, fail-fast env-var validation, pino logging with redaction, and opt-in OpenTelemetry.
-**Depends on**: every domain component (it constructs them).
-**Depended on by**: nothing — it is the top of the graph.
-**Notes**: `src/app.ts` is the largest file in u1 at 175 lines. `config.ts` reads every secret from `process.env` and fails fast at startup; no hardcoded secrets anywhere.
+**Depends on**: `locality`, `guide`, `guestcontext`, `property/ownership` (not analyzed), `auth` *(carried forward)*, `persistence`.
 
-### auth
+**Depended on by**: `chatmodule` *(carried forward)*.
 
-**Files**: `src/auth/jwt.ts`, `src/auth/middleware.ts`, `src/auth/password.ts` (skimmed), `src/auth/refreshTokenStore.ts` (skimmed).
-**Responsibility**: JWT signing and verification for the three token kinds (access, refresh, internal service), the `requireAuth` and ownership guards, `requireStayToken` (path token + `Host`-to-locality match), password hashing, and refresh-token revocation.
-**Depends on**: `locality` (host resolution inside `requireStayToken`), `jsonwebtoken`, `bcryptjs`.
-**Depended on by**: `identity`, `guestaccess`, `chatmodule`, and every authenticated route.
-**Notes**: `InMemoryRefreshTokenStore` is **per-process** — revocation is not shared across the 2–6 production tasks.
-
-### ratelimit
-
-**Files**: `src/ratelimit/plugin.ts`, `src/ratelimit/types.ts`, `src/ratelimit/memoryStore.ts`.
-**Responsibility**: Token-bucket rate limiting with four presets, `Retry-After` in seconds on `429`.
-**Depends on**: nothing.
-**Depended on by**: `app-runtime` (registered as a `preHandler` **after** route registration, matching paths with hand-rolled string comparisons).
-**Notes**: `InMemoryRateLimitStore` is per-process, so effective limits scale with task count. Zero test coverage; firing was verified empirically during the scan.
+**Notes**: **this supersedes the prior scan's dead-code finding.** `createStay` is now wired to `POST /v1/stays` (`routes.ts:53`). The guest payload carries no timezone and no `expiresAt`; the latter is deliberate.
 
 ### persistence
 
-**Files**: `prisma/schema.prisma`, `prisma/migrations/20260906234912_init/`, `src/db/prismaClient.ts` (skimmed), and the Prisma adapter half of each `repository.ts` (skimmed).
-**Responsibility**: The 11-entity relational model and the single applied migration. One PostgreSQL 16 database shared by all domain components.
+**Health**: at-risk for this intent. The schema supports the filters, but the production content does not populate them.
+
+**Scope of this verification**: `prisma/schema.prisma` was analyzed deeply. Migrations were skimmed. Adapter bodies were covered only within the analyzed modules.
+
+**Responsibility**: the relational model in PostgreSQL, which has **no PostGIS** (`schema.prisma:433-437`). There were 32 models at `ce69629` (a count only). These are the models relevant to the intent:
+
+| Model | Key fields | Lines |
+|---|---|---|
+| `POI` | `latitude`/`longitude Float?`, WGS84, `pois_geo_paired` CHECK plus range CHECKs, `@@index([latitude, longitude])`; legacy `category`; `categoryId`; `tier`; `placeGroup`; deprecated `isFree` | `:426-439, 524-529, 557` |
+| `PoiCategory` | `category`, `subcategory`, `slug`, `icon`, `sortOrder`, `imageKey`. The table was created outside Prisma. | `:546-551, 566-600` |
+| `PlaceHours` | `dayOfWeek` (0 = Sunday), `opens`/`closes` `HH:MM` (no format CHECK), `closesNextDay`, `isClosed`, `validFrom`/`validUntil`; several spans per day. No row means unknown. | `:971-990` |
+| `PlaceProfile` | One per POI. `priceLevel SmallInt?`, CHECK 0–4 (0 = free). No row or NULL means unknown. | `:1086-1101` |
+| `PropertyListing` | `stance` (`offered \| featured \| listed \| hidden`), `hostNote`, `rank`, `addedBy` | `:787-792, 939-963` |
+| `Property` | `latitude`/`longitude Float?` (paired), `geocodeQuality`, `geocodedAt`, `timezone` (nullable IANA, with no writer in `src/`) | `:163-166, 230-240` |
+| `Area` | `timezone` (required) | `:1118` |
+| `LocalityEntity` | `timezone`, default `"UTC"` | `:1505` |
+| `GuideContent` | `favoritedPOIIds`, **deprecated** but still the guest place source | `:333-334` |
+
 **Depends on**: `@prisma/client`.
-**Depended on by**: every domain component, always through a narrow port interface — no service imports `PrismaClient` directly.
 
-### infra-u1
+**Depended on by**: every domain component, through ports.
 
-**Files**: `infra/bin/backend-api.ts`, `infra/lib/backend-api-stack.ts`, `infra/cdk.json`, `infra/cdk.context.json`.
-**Responsibility**: u1's CDK v2 app — three environment-parameterized stacks (`dev`, `staging`, `production`) covering VPC, ECS Fargate + ALB, RDS PostgreSQL 16, Secrets Manager, a CloudWatch log group, and a one-off migration task definition. Also the source of the per-environment `allowedOrigins` and `CHAT_PROVIDER` values.
-**Depends on**: the repo root `Dockerfile` as a build asset (`runtime` and `migrate` targets).
-**Depended on by**: `infra-u2`, which expects SSM parameters this stack does not publish.
-
-### infra-u2
-
-**Files**: `admin-api/infra/bin/admin-api.ts`, `admin-api/infra/lib/admin-api-stack.ts`, `admin-api/infra/cdk.json` (line counts and README description read; the stack body was **not** read line by line).
-**Responsibility**: u2's own CDK v2 app — ECS Fargate with a WAF IP allowlist.
-**Depends on**: shared VPC / cluster / security-group / subnet ids read from SSM parameters published by `infra-u1`.
-**Notes**: **Not deployable today** — those SSM parameters do not exist. Documented in `admin-api/README.md` and at the top of the stack file.
+**Notes**:
+- No production path writes `POI` coordinates, `PlaceHours` or `PlaceProfile`. See TD-20 and TD-21.
+- The `locality_category_counts` materialized view is unmodelled (`:578-581`).
 
 ---
 
-## Component dependency graph
+## Modules observed at `ce69629` but not analyzed
+
+The architect saw `hostnote/` (the legacy `HostNote` repository), `property/` (`ownership.ts`, `routes.ts`, `service.ts`) and `jobs/` (`expireEvents.ts`) in a directory listing. They were not analyzed, so they have no heading here. Promote them to components in a later scan.
+
+---
+
+## Components carried forward from `76d190d` (not re-verified)
+
+### identity
+
+Account lifecycle and owner authentication: signup, login, password reset and token rotation. At `76d190d`, reset tokens were discarded.
+
+### onboarding
+
+The property-setup state machine. At `ce69629` the developer skimmed `propertyDetails.ts`, which writes the property's paired `latitude`/`longitude` (`:148-195`). This is the only product write path for any coordinate.
+
+### event
+
+Curated local events. At `ce69629` it is known to use the `poi/geo.ts` helpers (`event/service.ts:322-330`).
+
+### subscription
+
+The single-tier Stripe-backed subscription. At `76d190d`, PATCH cancelled on any unrecognised action.
+
+### chatmodule
+
+Guest itinerary chat. At `76d190d` it used a null provider and succeeded only through the sparse fallback.
+
+### leadcapture
+
+Three unauthenticated marketing intake endpoints.
+
+### admin-api
+
+The u2 ops back office, a pure HTTP delegation into u1's internal API. At `ce69629` it was skimmed only: its POI route does not write coordinates, hours or price.
+
+### app-runtime
+
+The two Fastify instances, CORS, the rate-limit `preHandler`, the error envelope, config and wiring. At `ce69629` `src/config.ts` was skimmed: it has only Google OAuth keys and no map key. `src/app.ts` has no CSP or helmet.
+
+### auth
+
+JWT signing and verification, `authenticate`, `requireStayToken`, and the per-process refresh-token store (at `76d190d`).
+
+### ratelimit
+
+Token-bucket limits, per process (at `76d190d`).
+
+### infra-u1
+
+The u1 CDK app (`dev`, `staging`, `production`).
+
+### infra-u2
+
+The u2 CDK app. At `76d190d` it was not deployable because of missing SSM parameters.
+
+---
+
+## Dependency graph for the analyzed area (verified at `ce69629`)
 
 ```mermaid
 graph TD
-  AR["app-runtime"] --> ID["identity"]
-  AR --> ONB["onboarding"]
-  AR --> GD["guide"]
-  AR --> POI["poi"]
-  AR --> EV["event"]
-  AR --> SUB["subscription"]
-  AR --> GA["guestaccess"]
-  AR --> CM["chatmodule"]
-  AR --> LC["leadcapture"]
-  AR --> LOC["locality"]
-  AR --> RL["ratelimit"]
-  AR --> AU["auth"]
-
-  ID --> LOC
-  ID --> AU
-  GA --> LOC
-  GA --> GD
-  GA --> AU
-  CM --> GA
-  CM --> POI
-  CM --> EV
-  ONB --> GD
-  GD --> POI
-  GD --> EV
-
-  ID --> P["persistence"]
-  ONB --> P
+  GA["guestaccess"] --> GC["guestcontext"]
+  GA --> GD["guide"]
+  GA --> LOC["locality"]
+  GC --> GD
+  GC --> DST["destination"]
+  GD --> POI["poi"]
+  GDR["guide routes"] -.->|"favourite dual write, optional port"| GC
+  GDR --> GD
+  DST --> POI
+  EV["event - carried forward"] --> POI
+  GA --> P["persistence"]
+  GC --> P
   GD --> P
   POI --> P
-  EV --> P
-  SUB --> P
-  GA --> P
-  CM --> P
-  LC --> P
+  DST --> P
   LOC --> P
-
-  ADM["admin-api"] -.->|"HTTP only, no code sharing"| AR
-  I1["infra-u1"] -.-> AR
-  I2["infra-u2"] -.->|"SSM params not published"| I1
 ```
 
-*Text fallback*: `app-runtime` constructs all ten domain components plus `auth` and `ratelimit`. `locality` is the tenancy root that `identity` and `guestaccess` both depend on. `guide` depends on `poi` and `event` for favourite validation; `chatmodule` depends on `guestaccess`, `poi`, and `event`. Every domain component reaches `persistence` through a port. `admin-api` couples to `app-runtime` only over HTTP at runtime, and `infra-u2` depends on SSM parameters `infra-u1` does not publish.
+*Text fallback*:
+- `guestaccess` depends on `guestcontext`, `guide` and `locality`.
+- `guestcontext` depends on `guide` and `destination`.
+- `guide` depends on `poi`.
+- `guide`'s route layer, not its service, also calls `guestcontext` through an optional port for the favourite-to-listing dual write. The service graph therefore stays acyclic, and the coupling lives at the HTTP edge.
+- `destination` and `event` reuse `poi`'s geo helpers.
+- Every module reaches `persistence` through its own port.
+
+The whole-system graph from the prior scan (`app-runtime` constructing every component, and `admin-api` coupled only over HTTP) is carried forward and was not re-verified.

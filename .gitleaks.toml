@@ -1,0 +1,29 @@
+# Secret-scan configuration for this repository.
+#
+# The scan stays BLOCKING and keeps every default rule. This file only names
+# two known false positives, each matched on the exact line shape so nothing
+# else is let through. It does not exclude the aidlc/ folder: the workflow
+# record contains pasted command output, which is where a real secret could
+# turn up, and that must keep being scanned.
+
+title = "guestguideIQ gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "AI-DLC record markers that the generic-api-key rule mistakes for keys"
+regexTarget = "line"
+regexes = [
+  # A content-hash marker the workflow writes into a stage diary:
+  #   <!-- aidlc-wave-memory:<unit>:<sha256> -->
+  # A unit named `u1-places-api` puts "api" beside a 64-character hash, which
+  # the generic rule reads as a key. It is a SHA-256 of the diary entry.
+  # Owner: sripradeep. Added 2026-10-11. No expiry: the marker format is fixed.
+  '''aidlc-wave-memory:[a-z0-9-]+:[0-9a-f]{64}''',
+
+  # One audit-trail line listing the four units of the places-filters work.
+  # "u1-places-api service, u2-places-foundation library" trips the same rule.
+  # Owner: sripradeep. Added 2026-10-11. Tied to that one recorded sentence.
+  '''Decomposition plan: 4 units \(u1-places-api service, u2-places-foundation library''',
+]

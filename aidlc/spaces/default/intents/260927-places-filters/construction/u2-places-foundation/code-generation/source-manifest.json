@@ -1,0 +1,147 @@
+{
+  "stage": "code-generation",
+  "unit": "u2-places-foundation",
+  "version": 1,
+  "writes": [
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "eslint.config.js"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/api/contract/PROVENANCE.md"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/api/contract/contract.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/api/contract/entities.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/index.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/CheckboxGroup.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/Chip.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/ChipRow.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/CollapsibleSection.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/Dialog.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/FilterSheet.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/OptionText.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/RadioGroup.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/filterControls.scenarios.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/inertBackground.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/design-system/primitives/primitives.css"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/dialogSurfaces.test.tsx"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/eslintConfig.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/mocks/backend.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/mocks/handlers.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/contract.scenarios.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/distance.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/filterablePlace.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/hostStance.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/index.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/openHours.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/openHours.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placeFilters.scenarios.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placeFilters.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placeFilters.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placePreferences.scenarios.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placePreferences.test.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/placePreferences.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/sections.ts"
+    },
+    {
+      "repo": "guestguideiq-frontend",
+      "path": "src/places/types.ts"
+    }
+  ]
+}

@@ -1,109 +1,254 @@
 # Architecture — `guestguideiq-app`
 
-**Derived from**: the developer full-repo scan of 2026-09-07, re-run over current HEAD (branch `main`, HEAD `76d190d`; the earlier pass ran at `40c8aed`, and `git diff 40c8aed..HEAD` touches only `infra/lib/backend-api-stack.ts`). Component responsibilities are in `component-inventory.md`; wire-level contracts are in `api-documentation.md`. Nothing is repeated across those files — this document covers structure, topology, and transaction flow only.
+**Derived from** two passes:
+- The **focused scan of 2026-09-30** at `ce69629` (intent `260927-places-filters`). It deeply analyzed `prisma/schema.prisma`, `src/poi/`, `src/guide/`, `src/guestcontext/`, `src/destination/`, `src/locality/` and `src/guestaccess/`.
+- The **prior full scan** at `76d190d` (2026-09-07), preserved for everything else.
+
+Sections that rest on the prior scan are marked *(carried forward from `76d190d`, not re-verified)*. Component responsibilities are in `component-inventory.md`, and wire contracts are in `api-documentation.md`.
 
 ---
 
-## System Overview
+## System Overview *(topology carried forward from `76d190d`; module list updated)*
 
-Two independently deployed TypeScript/Fastify HTTP services over one shared PostgreSQL database, plus two separate AWS CDK apps.
+The system is two independently deployed TypeScript/Fastify HTTP services over one shared PostgreSQL database, plus two separate AWS CDK apps.
 
-- **u1 `backend-api`** (repo root) owns the data and hosts **all ten domain components**. It runs **two Fastify instances in one process**: a public listener on `PORT` (default 3000, bound `0.0.0.0`) and an internal listener on `INTERNAL_PORT` (default 3001, bound **`127.0.0.1` only**, never `EXPOSE`d in the Dockerfile and never in an ALB target group).
-- **u2 `admin-api`** (`admin-api/`) owns **no data**. Every route is an ops-role-gated delegation into u1's internal API over HTTP. It shares no code, no types, and no npm linkage with u1 — the only coupling is the runtime URL `BACKEND_API_INTERNAL_URL`.
+- **u1 `backend-api`** (the repo root) owns the data and hosts every domain module. At `76d190d` it ran two Fastify instances in one process: a public listener (`PORT`, default 3000) and an internal listener bound to `127.0.0.1` (`INTERNAL_PORT`, default 3001).
+- **u2 `admin-api`** (`admin-api/`) owns no data and delegates into u1's internal API over HTTP. At `ce69629` the developer confirmed at directory level that its `poi/routes.ts` does not write coordinates, hours or price.
+
+**The module list has grown since the prior scan.** A directory listing of `src/` at `ce69629` shows `destination/`, `guestcontext/`, `hostnote/`, `property/` and `jobs/` alongside the ten modules the prior store described. Of the new modules, this store describes only `destination` and `guestcontext`, which were analyzed deeply. `hostnote/`, `property/` and `jobs/` were observed but not analyzed.
 
 ## Architectural Style
 
-**Modular monolith with a satellite ops service**, implemented as **ports and adapters (hexagonal)**.
+The style is a **modular monolith with a satellite ops service, built as ports and adapters**. The prior scan found every module to be a strict `repository.ts` → `service.ts` → `routes.ts` triad. At `ce69629` the analyzed modules still follow that shape, with helper files beside the triad:
+- `poi/geo.ts` and `poi/propertyCoordinates.ts`
+- `guestcontext/poiCategories.ts` and `guestcontext/hostContent.ts`
+- `destination/themes.ts`
+- `locality/tenantHost.ts`
+- `guestaccess/link.ts`
 
-Evidence:
-- Every u1 domain module is the identical triad `repository.ts` (narrow port interface + Prisma adapter) → `service.ts` (business logic, depends only on the port) → `routes.ts` (HTTP). Applied consistently across all ten modules with no observed violation.
-- `src/wiring.ts` is the **sole composition root**; it is the only place Prisma adapters are constructed. No circular imports observed.
-- u1 is a monolith by deployment (one container, one process, two listeners), not by structure — the module boundaries are clean enough that extraction would be mechanical.
-- u2 is a genuine separate service: separate `package.json`, `tsconfig.json`, `node_modules/`, `Dockerfile`, and CDK app.
+`destination/` has **no `routes.ts`**. It is a service consumed by other modules, not an HTTP surface.
 
-## Component Topology
+## Places and Curation Architecture (verified at `ce69629`)
+
+This is the area intent `260927-places-filters` changes. Four modules share it.
 
 ```mermaid
 graph TD
-  subgraph clients["Clients"]
-    OwnerUI["Property Owner frontend - NOT YET BUILT"]
-    GuestUI["Guest frontend - NOT YET BUILT"]
-    Mktg["Marketing site - already integrated"]
-    Ops["Ops operator"]
-  end
+  GA["guestaccess - stay token guard, GET /v1/stays/:token, owner stay CRUD"]
+  GC["guestcontext - enrichGuestGuide, listings, host places, area view, feedback"]
+  GD["guide - GuestPOIView, favourites, OwnerGuideView"]
+  POI["poi - catalogue, geo helpers, nearby and nearProperty"]
+  DST["destination - area containment, themes"]
+  LOC["locality - tenant host, locality timezone"]
+  DB[("PostgreSQL - no PostGIS")]
 
-  subgraph u1["u1 backend-api :3000 public / :3001 loopback"]
-    PubApp["Public Fastify app - src/app.ts"]
-    IntApp["Internal Fastify app - src/internalApp.ts"]
-    Auth["auth middleware and JWT"]
-    RL["ratelimit plugin"]
-    Domain["10 domain components - service plus repository ports"]
-    Wiring["wiring.ts composition root"]
-  end
-
-  subgraph u2["u2 admin-api :4000"]
-    AdminApp["Admin Fastify app - prefix /v1"]
-    IntClient["internal/client.ts - axios plus service JWT"]
-  end
-
-  DB[("PostgreSQL 16 - Prisma, 11 entities")]
-  Stripe["Stripe API"]
-  ChatP["Chat provider - CHAT_PROVIDER=null today"]
-
-  OwnerUI -->|"Bearer access token"| PubApp
-  GuestUI -->|"stay token in path plus Host"| PubApp
-  Mktg -->|"no auth"| PubApp
-  Ops -->|"ops-role JWT"| AdminApp
-
-  AdminApp --> IntClient
-  IntClient -->|"HTTP plus internal service JWT"| IntApp
-
-  PubApp --> Auth
-  PubApp --> RL
-  Auth --> Domain
-  IntApp --> Domain
-  Wiring --> Domain
-  Domain --> DB
-  Domain --> Stripe
-  Domain -.->|"never resolves today"| ChatP
+  GA --> GC
+  GA --> GD
+  GA --> LOC
+  GC --> GD
+  GC --> DST
+  GD --> POI
+  DST -.->|"haversine"| POI
+  POI --> DB
+  GC --> DB
+  GD --> DB
+  GA --> DB
 ```
 
-*Text fallback*: four client kinds reach the system. Owner, Guest, and marketing traffic hit u1's public Fastify app on port 3000, passing through auth middleware and the rate-limit plugin into the ten domain components, which talk to PostgreSQL via Prisma, to Stripe, and (nominally) to a chat provider that is never resolved. Ops traffic hits u2's admin app on port 4000, which holds no data and forwards every call over HTTP with an internal service JWT to u1's internal Fastify app bound to loopback on port 3001.
+*Text fallback*:
+- `guestaccess` authenticates the guest by stay token and locality. It reads the published guide from `guide`, then asks `guestcontext` to enrich it.
+- `guestcontext` turns each `GuestPOIView` into a `GuestPlace`. It adds the stance, host note, hours, features, fit, price profile, tips, media, category, advisories and the guest's own feedback, and adds the area context through `destination`.
+- `guide` builds `GuestPOIView` from `poi` rows.
+- `poi` owns the catalogue and the pure-TypeScript geo helpers (haversine, bounding box, coordinate validation). `destination` and `event` also call these helpers.
+- All data is in plain PostgreSQL. There is no PostGIS, so every distance calculation happens in application code.
 
-## Layering Inside a u1 Domain Component
+### Data model for a place
+
+This is summarised from `prisma/schema.prisma`; line references are in `component-inventory.md` § persistence.
 
 ```mermaid
-graph LR
-  R["routes.ts - HTTP shape and status codes"] --> S["service.ts - business rules"]
-  S --> P["repository.ts - port interface"]
-  P --> A["Prisma adapter - same file, below the port"]
-  A --> DB[("PostgreSQL")]
-  W["wiring.ts"] -.->|"constructs adapters"| A
-  T["tests/doubles - shared fakeDb.ts"] -.->|"substitutes for"| P
+erDiagram
+  POI ||--o| PlaceProfile : "profile"
+  POI ||--o{ PlaceHours : "hours rules"
+  POI }o--o| PoiCategory : "categoryId"
+  POI ||--o{ PropertyListing : "per property stance"
+  Property ||--o{ PropertyListing : "curates"
+  Property ||--o{ Stay : "issues"
+  POI ||--o{ HostNote : "legacy stance"
 ```
 
-*Text fallback*: HTTP route handlers call a service; the service depends only on a narrow repository port interface; the Prisma adapter implements that port in the same file; `wiring.ts` constructs the adapters; in tests an in-memory double backed by a shared `fakeDb.ts` is substituted for the port.
+*Text fallback*:
+- **POI**
+  - Nullable `latitude` and `longitude`, with a paired-or-absent CHECK and a lat/lng index.
+  - Legacy free-text `category` and a nullable `categoryId`.
+  - `tier`, `placeGroup`, `address`, and a deprecated `isFree`.
+- **PlaceProfile** (0..1 per POI)
+  - `priceLevel` is a SmallInt with a CHECK of 0–4.
+  - Also `setting`, `typicalMinutes` and `effort`.
+- **PlaceHours** (0..n per POI)
+  - `dayOfWeek` (0 = Sunday), `opens` and `closes` as `HH:MM` strings, `closesNextDay`, `isClosed`, and `validFrom`/`validUntil`.
+  - A day can have several spans.
+- **PoiCategory**
+  - A taxonomy table created outside Prisma, holding `category`, `subcategory`, `slug`, `icon`, `sortOrder` and `imageKey`.
+- **PropertyListing**
+  - One row per property and place, holding `stance` (`offered | featured | listed | hidden`), `hostNote`, `rank` and `addedBy`.
+- **HostNote**
+  - The legacy `recommended | not_recommended` stance. It still drives `GuestPOIView.recommended`.
+- **Property**
+  - Nullable paired `latitude`/`longitude`, plus `geocodeQuality`, `geocodedAt` and a nullable IANA `timezone`.
+
+### Key design facts for the intent
+
+1. **Two stance systems run in parallel.** `PropertyListing.stance` drives `GuestPlace.stance`, visibility and order. The legacy `HostNote` drives `recommended`. The guest place set is still sourced from the **deprecated** `GuideContent.favoritedPOIIds`, then re-filtered and re-sorted by listing stance (`src/guide/service.ts:378`, `src/guestcontext/service.ts:417-422, 531-540`).
+2. **The guest payload is fully materialized and unparameterized.** The host's picks are small and are all returned in one `GET /v1/stays/:token`, with no query parameters. Filtering and sorting on the guest side are therefore naturally **client-side** over one payload. The pieces missing for distance, map and open-now are **server-side**: place coordinates, distance and timezone.
+3. **Distance machinery exists but is unreachable.**
+   - `POIService.nearby` does a two-stage search: a bounding box, then haversine. It sorts before it truncates, allows a radius of up to 200 km, and returns 100 results by default and 500 at most.
+   - `nearProperty` returns `located:false` for an unlocated property.
+   - Both are tested (`tests/unit/poiPlaces.test.ts`, `tests/integration/places.pg.test.ts`), but **no route calls them**.
+4. **Time is zone-dependent but no zone reaches a client.** Three zone fields exist: `LocalityEntity.timezone` (default `"UTC"`), `Property.timezone` (nullable, with no writer in `src/`) and `Area.timezone` (required). Stay expiry uses locality, then property, then UTC through `endOfDayInZone`. The guest payload has no zone; `/v1/localities/current` omits it on purpose; only the owner `GET /v1/properties/:id/area` exposes `area.timezone`.
+5. **`hoursOf` filters by the stay window, not by a date.** A rule valid on only part of the stay is still returned, with `seasonal: true`. A per-date evaluation ("open now", "open on day X") is new logic, and today nothing implements it on either side.
 
 ## Data Architecture
 
-- One PostgreSQL 16 database, 11 entities, Prisma as ORM and migration tool. A single applied migration, `20260906234912_init`. `prisma/schema.prisma` is the authoritative shape.
-- All persistence flows through repository ports; no service imports `PrismaClient` directly.
-- **Two stores are deliberately in-memory and per-process**: `InMemoryRefreshTokenStore` and `InMemoryRateLimitStore`. Production runs `desiredCount: 2` ECS tasks autoscaling to 6, so refresh-token revocation is **not shared across tasks** (a rotated token replayed against the other task is accepted) and each rate-limit bucket is effectively multiplied by the task count. Both files carry comments acknowledging a Redis upgrade path; neither is wired. This bounds any frontend silent-re-auth strategy — see `code-quality-assessment.md` TD-12.
+- There is one PostgreSQL database; Prisma is both the ORM and the migration tool. There is **no PostGIS** (`schema.prisma:433-437`).
+- At `ce69629` the architect counted **32 `model` blocks** and **16 migration directories**; the prior "11 entities, one migration" is superseded. Only the place, curation, category, stay and property-geo models were analyzed deeply.
+- These migrations matter to this intent:
+  - `20260912000000_import_traumeri_guidebook` inserts 19 POIs with no coordinates.
+  - `20260918000000_poi_event_location_and_host_notes` adds POI and event location and the `pois_geo_paired` CHECK.
+  - `20260920000000_backfill_poi_types`
+  - `20260926000000_poi_categories_and_category_media`
+- The prior scan found two per-process in-memory stores: refresh tokens and rate-limit buckets. That finding is carried forward but was not re-verified.
 
-## Deployment Topology
+## Deployment Topology *(carried forward from `76d190d`, not re-verified)*
 
-- **Packaging**: multi-stage Dockerfile, `node:20-slim` base, non-root container user, `runtime` and `migrate` targets.
-- **u1 CDK app** (`infra/`): three environment-parameterized stacks (`dev`, `staging`, `production`) — VPC, ECS Fargate behind an ALB, RDS PostgreSQL 16 in private subnets, Secrets Manager, a CloudWatch log group, and a one-off migration task definition.
-- **u2 CDK app** (`admin-api/infra/`): its own ECS Fargate service with a WAF IP allowlist. It reads the shared VPC/cluster ids from SSM parameters **that u1's stack does not publish**, so it is **not deployable today**.
-- Observability: OpenTelemetry SDK, opt-in via `OTEL_ENABLED`; pino structured logging with redaction of `password`, `passwordHash`, `authorization`, `token`, `stayToken`. W3C `traceparent` is propagated u2 → u1 but **never surfaced to the client**.
+- A multi-stage Dockerfile with `node:20-slim`, a non-root user and `runtime` and `migrate` targets.
+- The u1 CDK app has `dev`, `staging` and `production` stacks: ECS Fargate behind an ALB, RDS PostgreSQL 16, Secrets Manager and CloudWatch.
+- The u2 CDK app deploys its own Fargate service behind a WAF allowlist.
+- The HEAD commit subject at `ce69629` ("Migrate on the exact image that ships, and check it") suggests the migration path has changed since. That was not analyzed.
+- A second workflow, `.github/workflows/load-locality-content.yml`, was observed by name. It is a manual OIDC-authenticated ECS task that runs `prisma/seedLocalityContent.ts`, and it is the production content loader.
 
 ---
 
 ## Interaction Diagrams
 
-Five business transactions, each traced across the components that implement it.
+T2, T6, T7 and T8 were verified at `ce69629`. T1, T3, T4 and T5 are carried forward from `76d190d` and were not re-verified.
 
-### T1 — Property Owner signup through first published guide
+### T2: Guest opens a stay link and reads the Places tab (verified at `ce69629`)
+
+```mermaid
+sequenceDiagram
+  participant GFE as Guest frontend
+  participant API as u1 public app
+  participant MW as requireStayToken
+  participant LOC as locality
+  participant G as guide
+  participant GC as guestcontext
+  participant DB as PostgreSQL
+
+  GFE->>API: GET /v1/stays/:token with Host header
+  API->>MW: resolve stay for request
+  MW->>LOC: resolve locality from host
+  MW->>DB: load Stay by token, then Property
+  alt unknown token, expired, missing property or host mismatch
+    MW-->>GFE: 410 LINK_INVALID, identical in every case
+  else valid
+    API->>G: getForGuest with the stay window
+    G->>DB: published guide, favourited POIs, events in the window
+    G-->>API: GuestGuideView with GuestPOIView list, no coordinates
+    API->>GC: enrichGuestGuide
+    GC->>DB: listings, hours, profiles, categories, features, fit, tips, media, feedback
+    Note over GC: drop hidden and offered, sort featured then rank then pick order
+    Note over GC: hoursOf keeps rules touching the stay window
+    GC-->>API: GuestPlace list, area, advisories, itinerary
+    API-->>GFE: 200 stay, property with geo, locality, guide
+  end
+```
+
+*Text fallback*:
+1. The guest's request is authenticated by stay token plus the host-derived locality. All four failure modes return one `410`.
+2. On success, `guide` reads the published guide and the favourited places. It projects them to `GuestPOIView`, which leaves out coordinates.
+3. `guestcontext` enriches each place. It removes `hidden` and `offered` places, sorts `featured` before `listed`, and attaches hours limited to the stay window, the price profile and the category.
+4. The response carries the property's own coordinates, but no place coordinates, no distance and no timezone.
+
+### T6: Host curates a place (verified at `ce69629`)
+
+```mermaid
+sequenceDiagram
+  participant OFE as Owner frontend
+  participant API as u1 public app
+  participant POI as poi
+  participant G as guide
+  participant GC as guestcontext
+  participant DB as PostgreSQL
+
+  OFE->>API: GET /v1/pois?propertyId=
+  API->>POI: browse locality catalogue, published only
+  POI-->>OFE: 200 items id, name, description, category, localityIds, address, hostAdded
+  OFE->>API: GET /v1/properties/:id/listings
+  GC-->>OFE: 200 kind, id, stance, hostNote, rank, feedback
+  Note over OFE: client joins the two lists by id
+  OFE->>API: POST /v1/guides/:id/favorites with a poi id
+  API->>G: add favourite
+  API->>GC: noteFavourited, dual write PropertyListing stance featured
+  GC->>DB: upsert listing
+  OFE->>API: PATCH /v1/properties/:id/listings/places/:itemId with stance and hostNote
+  GC->>DB: update listing
+  GC-->>OFE: 200
+```
+
+*Text fallback*:
+1. The host loads the locality catalogue. It is a thin six-field projection plus `hostAdded`, with no coordinates, `categoryId`, hours, price or stance.
+2. The host loads the listings separately and joins them to the catalogue by id on the client.
+3. Picking a place writes the legacy favourite. The route handler then separately calls `guestcontext` through an optional port, which writes a `PropertyListing` with stance `featured`.
+4. Stance and host note are then edited per place.
+
+### T7: Host issues a guest stay link (verified at `ce69629`)
+
+```mermaid
+sequenceDiagram
+  participant OFE as Owner frontend
+  participant API as u1 public app
+  participant GA as guestaccess
+  participant DB as PostgreSQL
+
+  OFE->>API: POST /v1/stays with propertyId, checkIn, checkOut, guestName
+  API->>GA: authenticate, then assert the account owns propertyId
+  alt propertyId missing, dates invalid or checkOut before checkIn
+    GA-->>OFE: 400 VALIDATION_ERROR
+  else owned and valid
+    GA->>DB: create Stay with an opaque token
+    GA-->>OFE: 201 stay view with the shareable link
+  end
+  OFE->>API: GET /v1/stays?propertyId=
+  GA-->>OFE: 200 items, newest first
+  OFE->>API: PATCH or DELETE /v1/stays/:stayId
+  Note over GA: routed by stay id, never by token, and ownership is checked through the property
+```
+
+*Text fallback*:
+1. The owner creates a stay for an explicitly named property they own. `propertyId` is required because an account can own several properties.
+2. The server returns the link. The owner can list stays per property, and correct or revoke a stay by its id.
+3. The guest's token never appears in owner URLs.
+
+### T8: Resolving "today" for a stay (verified at `ce69629`)
+
+```mermaid
+flowchart LR
+  A["LocalityEntity.timezone, default UTC"] -->|"first"| R["resolved zone"]
+  B["Property.timezone, nullable, no writer in src"] -->|"then"| R
+  C["UTC"] -->|"last"| R
+  R --> E["endOfDayInZone: stay expiry"]
+  R -.->|"not exposed"| G["guest payload has no zone"]
+  AR["Area.timezone, required"] -->|"owner area view only"| O["GET /v1/properties/:id/area"]
+```
+
+*Text fallback*:
+- The server resolves a zone for stay expiry: the locality's zone first, then the property's, then UTC.
+- That zone is never sent to the guest.
+- The only zone any client receives is `area.timezone`, on the owner's area view.
+- An "open now" filter therefore needs one of three things: a zone, or a server-computed flag, added to the guest payload; or a device-clock fallback, which is wrong for a guest planning from another zone.
+
+### T1: Owner signup through first published guide *(carried forward from `76d190d`, not re-verified)*
 
 ```mermaid
 sequenceDiagram
@@ -113,177 +258,83 @@ sequenceDiagram
   participant LOC as locality
   participant ONB as onboarding
   participant G as guide
-  participant DB as PostgreSQL
 
   FE->>API: POST /v1/accounts with username and password
   API->>ID: createAccount, passing request Host
-  ID->>LOC: resolveDomain of host
-  LOC->>DB: lookup domain to locality brand
-  alt host not registered to any locality brand
-    LOC-->>ID: no match
+  ID->>LOC: resolve locality from host
+  alt host not registered
     ID-->>FE: 404 LOCALITY_NOT_RESOLVED
   else resolved
-    ID->>DB: create Account and Property atomically
-    ID-->>FE: 201 accountId, propertyId, accessToken, refreshToken
+    ID-->>FE: 201 accountId, propertyId, tokens
   end
-
-  FE->>API: POST /v1/onboarding/property-basics
-  API->>ONB: advance from property_basics
-  ONB-->>FE: 200 currentStep content_source
-  FE->>API: POST /v1/onboarding/content-source/scratch or /pdf
-  ONB-->>FE: 200 currentStep content_review
-  FE->>API: POST /v1/onboarding/content-review/confirm
-  ONB-->>FE: 200 currentStep confirm
-  FE->>API: POST /v1/onboarding/finish
+  FE->>API: onboarding steps in strict order
   ONB-->>FE: 200 completed true
-
-  FE->>API: GET /v1/guides/:propertyId
-  API->>G: read guide, creating an empty draft on first read
-  G-->>FE: 200 OwnerGuideView
   FE->>API: PATCH /v1/guides/:propertyId with sections
-  Note over G: full replace of the sections array
   FE->>API: POST /v1/guides/:propertyId/publish
-  G-->>FE: 200 OwnerGuideView, publishStatus published
+  G-->>FE: 200 publishStatus published
 ```
 
-*Text fallback*: signup resolves the tenant from the request `Host` header before creating anything, returning `404 LOCALITY_NOT_RESOLVED` if the host is not registered to a locality brand. The owner then walks a strictly ordered four-step onboarding state machine, reads the guide (which is lazily created as an empty draft), replaces its sections wholesale with a PATCH, and publishes it.
+*Text fallback*: at `76d190d`, signup resolved the tenant from `Host`. The owner then walked the ordered onboarding steps, replaced the guide sections wholesale and published. Later changes were not re-verified; in particular, multi-property accounts and property details may have altered this flow.
 
-### T2 — Guest opens a stay link
+### T3: Guest chat, T4: Ops creates a POI, T5: Token refresh *(carried forward from `76d190d`, not re-verified)*
 
 ```mermaid
 sequenceDiagram
   participant GFE as Guest frontend
   participant API as u1 public app
-  participant RL as ratelimit plugin
-  participant MW as requireStayToken
-  participant LOC as locality
-  participant GA as guestaccess
-  participant G as guide
-
-  GFE->>API: GET /v1/stays/:token with Host header
-  API->>RL: bucket keyed on client IP, 20 burst, 20 per min
-  alt bucket empty
-    RL-->>GFE: 429 RATE_LIMITED with Retry-After in seconds
-  else allowed
-    API->>MW: resolve stay for request
-    MW->>LOC: resolveDomain of host
-    MW->>GA: load Stay by token, then its Property
-    Note over MW: BR8.3 resolved locality must equal property localityBrandId
-    alt unknown token or expired stay or missing property or host mismatch
-      MW-->>GFE: 410 LINK_INVALID, identical message in every case
-    else valid
-      GA->>G: read published guide for the property
-      GA-->>GFE: 200 property, locality with visualStyling, guide or notYetPublished
-    end
-  end
-```
-
-*Text fallback*: the guest read is rate-limited by client IP, then authenticated by the opaque path token combined with a `Host`-header locality check. All four distinct failure modes collapse to one indistinguishable `410 LINK_INVALID`. On success the response carries the property, the locality branding blob, and either the published guide sections or a `notYetPublished` marker.
-
-### T3 — Guest itinerary chat, as it actually behaves today
-
-```mermaid
-sequenceDiagram
-  participant GFE as Guest frontend
-  participant API as u1 public app
-  participant RL as ratelimit plugin
   participant CM as chatmodule
-  participant CP as NullChatProvider
-
-  GFE->>API: POST /v1/stays/:token/chat with message
-  API->>RL: bucket keyed on the STAY TOKEN, 10 burst, 10 per min
-  API->>CM: handle message after requireStayToken passes
-  CM->>CM: count locality POIs plus active events
-  alt fewer than 3 curated items
-    CM-->>GFE: 200 canned reply, sparse true, messages array
-  else 3 or more curated items
-    CM->>CP: generate reply
-    CP-->>CM: throws
-    CM->>CP: retry once after 1s backoff
-    CP-->>CM: throws
-    CM-->>GFE: 504 CHAT_PROVIDER_TIMEOUT
-  end
-```
-
-*Text fallback*: chat is rate-limited per stay token rather than per IP. With `CHAT_PROVIDER=null` in every environment, the provider always throws, so the only 200 path is the sparse-content fallback for localities with fewer than three curated items; every other request returns `504` after one retry. The transcript is returned only as a side effect of this POST — there is no history endpoint.
-
-### T4 — Ops creates a POI through the admin service
-
-```mermaid
-sequenceDiagram
   participant OPS as Ops operator
-  participant A as u2 admin app 4000
-  participant C as internal client
-  participant I as u1 internal app 3001 loopback
-  participant POI as poi
-
-  OPS->>A: POST /v1/pois with ops-role JWT
-  alt missing or invalid JWT
-    A-->>OPS: 401
-  else valid but role is not ops
-    A-->>OPS: 403
-  else role is ops
-    A->>A: Fastify JSON body schema validation
-    A->>C: delegate
-    C->>I: POST /v1/internal/pois with internal service JWT, traceparent, 5s timeout
-    I->>POI: createPOI
-    POI-->>I: 201
-    I-->>C: 201
-    Note over C: upstream failures relayed verbatim, status and body
-    C-->>OPS: 201
-  end
-```
-
-*Text fallback*: the admin service authorises on an ops-role claim, validates the body against a Fastify JSON schema (u1's public routes have none), then forwards over HTTP with a short-lived internal service JWT and a W3C traceparent. Non-idempotent writes are never retried; idempotent reads retry once on 502/503/504 or a network error. Upstream errors are relayed verbatim.
-
-### T5 — Access-token refresh with rotation
-
-```mermaid
-sequenceDiagram
-  participant FE as Owner frontend
-  participant API as u1 public app
+  participant ADM as u2 admin app
+  participant INT as u1 internal app
   participant ID as identity
-  participant RS as InMemoryRefreshTokenStore per process
 
-  FE->>API: POST /v1/auth/refresh with refreshToken
-  API->>ID: verify signature, expiry, and jti not revoked
-  ID->>RS: check jti
-  alt invalid, expired, or already revoked on THIS task
-    ID-->>FE: 401 UNAUTHORIZED
-  else accepted
-    ID->>RS: revoke presented jti
-    ID-->>FE: 200 new accessToken and refreshToken
-  end
-  Note over RS: store is per process; with 2 to 6 ECS tasks a rotated token replayed against another task is accepted
+  GFE->>API: POST /v1/stays/:token/chat
+  API->>CM: rate limited per stay token
+  CM-->>GFE: 200 canned reply if under 3 curated items, else 504 at 76d190d
+  OPS->>ADM: POST /v1/pois with ops JWT
+  ADM->>INT: POST /v1/internal/pois with internal service JWT
+  INT-->>OPS: 201, errors relayed verbatim
+  GFE->>API: POST /v1/auth/refresh
+  API->>ID: verify and rotate jti in a per-process store
+  ID-->>GFE: 200 new token pair or 401
 ```
 
-*Text fallback*: refresh tokens rotate on use — each refresh revokes the presented `jti` and issues a new pair. Because the revocation store is per-process and production runs two to six tasks, single-use semantics are not reliably enforced; a frontend must not depend on them.
+*Text fallback*: these are the three flows the prior scan traced. At `76d190d`:
+- Chat always hit a null provider, so it succeeded only through the sparse fallback.
+- Ops POI creation went u2, then u1's loopback internal API. Per the focused scan, the u2 POI route carries no coordinates, hours or price.
+- Refresh-token rotation was enforced per process only.
 
 ---
 
 ## Cross-Cutting Constraints a Frontend Must Design Around
 
-Recorded once here, referenced elsewhere rather than restated.
-
-1. **Host-header tenancy is blocking for a browser frontend.** `POST /v1/accounts` and `requireStayToken` both resolve the locality brand from the request's own `Host` / `X-Forwarded-Host` header. A browser calling a shared origin such as `https://api.guestguideiq.com` sends that one host, which would have to be registered as a domain of **every** locality brand — forbidden by BR9.2 with a `409 CONFLICT`. A per-locality frontend origin calling a shared API origin therefore **cannot resolve its tenant today**. The viable resolutions are architectural, not incidental: a same-origin reverse proxy per locality domain, an explicit tenant header such as `X-Locality-Domain`, or a tenant parameter in the path or body. This must be decided before contract design.
-2. **No supply side for guest links.** The entire Guest experience hangs off `GET /v1/stays/:token`, yet **no HTTP endpoint in either service creates a `Stay`**. `createStayService` / `StayService.createStay` exist in `src/guestaccess/service.ts` (lines 62-77) and are referenced by nothing — not `wiring.ts`, not any `routes.ts`, not `internal/routes.ts`, not admin-api. Stays exist only in tests, seeded directly into the fake DB by `tests/factories/stayFactory.ts`. An owner-authenticated `POST /v1/stays` returning the token/link is a **prerequisite backend change**, not a frontend one.
-3. **CORS is merged, but its allowlist excludes the frontend and `credentials` is off.** The CORS work reached `main` in `b9c7c6e` (PR #15) and was re-verified file by file at `76d190d`, so no part of it depends on an unmerged branch any more. What it actually permits is narrower than "CORS works": production's `allowedOrigins` is **exactly `['https://guestguideiq.com']`** — the marketing site, hardcoded in `infra/bin/backend-api.ts`'s `domainConfig.production`, with no API subdomain, no frontend origin, no staging origin, no `localhost`, and no wildcard; `dev` and `staging` have no `domainConfig` entry at all, so `origin: false` refuses every cross-origin browser call there. **Every frontend origin this intent introduces must be added to `domainConfig` and redeployed — a backend change the frontend cannot make for itself**, sequenced before the first browser call from a new origin can succeed. Separately, **`credentials` is NOT enabled**: the `app.register(cors, …)` options object in `src/app.ts` carries only `origin`, so `Access-Control-Allow-Credentials` is never emitted and cross-origin cookies are neither sent nor accepted. **Cookie or session auth is therefore unavailable cross-origin** — bearer tokens in the `Authorization` header are the only viable scheme, pushing storage of a 15-minute access token and a 7-day rotating refresh token onto the frontend, and making the XSS-exposure trade-off of that storage an explicit frontend design decision. No `methods` / `allowedHeaders` / `exposedHeaders` / `maxAge` overrides are configured, so no non-simple response header can be read cross-origin. Coverage is three tests in `tests/unit/cors.test.ts`, all against `GET /health`; nothing asserts `Access-Control-Allow-Credentials` and there is no preflight `OPTIONS` test.
-
-   > **Constraints 1 and 3 share a solution and must be decided together, before contract design.** A same-origin reverse proxy per locality domain — the leading candidate fix for the Host-header tenancy blocker in constraint 1 — would also make CORS moot entirely and restore the cookie-auth option. Deciding them separately risks locking in bearer-token storage, and accepting its XSS exposure, for a reason a proxy would have eliminated.
-4. **Chat is non-functional and has no history.** See T3. `CHAT_PROVIDER=null` in `.env.example` and in the CDK task definition; there is no chat-history GET, so a guest reloading the page loses the transcript unless the frontend caches it locally.
-5. **Read endpoints a frontend will assume exist are missing**: no `GET /v1/subscriptions`, no current-user/profile endpoint, no logout or token-revocation endpoint, no chat-history GET. `GET /v1/pois` and `GET /v1/events` accept no query parameters and return the whole locality list unpaginated.
+1. **Places filters need backend changes before frontend work** (verified at `ce69629`). This is a new constraint.
+   - Distance, map and open-now depend on server-side additions: place `latitude`/`longitude` and/or `distanceMeters` in `GuestPlace`, and a resolved zone or a server-computed `openNow` in the stay payload.
+   - Price and host-pick filters can be built client-side over the existing payload. They still need the price-scale decision and the stance-field decision (TD-22, TD-23).
+   - This is one more backend follow-up. Recorded practice asks for the running total, not a single item: the frontend intent's backend follow-ups already grew three times.
+2. **Production content cannot feed the new filters yet** (verified from repository sources; the live database was not queried).
+   - None of the 24 repository-defined Sedona places has coordinates.
+   - Nothing in the product writes hours or price.
+   - Host-added places cannot carry coordinates.
+   - Requirements must define the "unknown" state for each filter and decide whether a producer is in scope: ingest, geocoding or host entry.
+3. **Host-header tenancy** *(carried forward from `76d190d`, not re-verified)*. Signup and the guest guard resolve the tenant from `Host`. The prior scan found a shared API origin could not serve several locality brands (BR9.2), and named a same-origin proxy as the leading fix. The developer skimmed `src/locality/tenantHost.ts` inside an analyzed path, but did not report on whether this constraint has changed.
+4. **CORS and credentials** *(carried forward from `76d190d`, not re-verified)*. At `76d190d` production allowed only the marketing origin and `credentials` was off. The team's affirmed backend follow-up required fixing this before frontend construction, and it may since have landed.
+5. **No map key or CSP in the backend** (skimmed at `ce69629`). `src/config.ts` has only Google OAuth keys, and `src/app.ts` sets no CSP. A Google Maps key and its CSP belong to the frontend host. Map rendering must keep the per-place `attribution` that OSM-sourced rows carry, which `GuestPOIView` already exposes.
 
 ## Key Design Decisions Worth Preserving
 
-- **Two listeners, one process** — the internal API is unreachable from outside the task by construction (loopback bind, no `EXPOSE`, no target group; NFR3.11) rather than by policy.
-- **Uniform failure for guest links** — collapsing four failure modes into one `410` is a deliberate information-leak defence, not sloppiness.
-- **One error envelope across all three contracts** — `{ error: { code, message, details? } }`, consistently applied.
-- **A single composition root** — `wiring.ts` is the only place infrastructure is bound to ports, which is why the test-double strategy works at all.
+- **Honest absence.** Null means "not stated" throughout the guest types. Filters must add an explicit "unknown" bucket rather than coercing null to closed, free or far.
+- **Guest guide as one materialized read.** It gives one round trip, one cacheable response, and client-side filtering over a small set.
+- **Uniform `410` for stay-link failures,** so the failure reason never leaks.
+- **Owner stay routes keyed by stay id, never by token,** so a live guest credential never enters an owner URL or a server log.
+- **Stance hides silently.** The guest never sees an id for a withheld place.
+- **A single composition root and ports** *(carried forward)*.
 
 ## Improvement Opportunities
 
-- Move refresh-token revocation and rate-limit buckets to Redis before scaling beyond one task, or accept and document the weakened semantics.
-- Add Fastify JSON request schemas to u1's public routes (u2 already has them) so malformed bodies yield `400` rather than `500`, and so a machine-readable contract becomes derivable.
-- Surface the OTel trace id in the error envelope as a correlation id.
-- Publish the SSM parameters u2's stack consumes, or fold u2's infrastructure into u1's app.
-- Replace the hand-rolled `path.startsWith(...)` matching in the app-level rate-limit `preHandler` with route-level registration; the string matching is brittle against future route additions and has no test coverage.
+- **Retire one stance system.** Choose `PropertyListing.stance`, migrate the `recommended` semantics, and stop sourcing the guest set from the deprecated `favoritedPOIIds`.
+- **Route `nearProperty`,** or project coordinates and distance into `GuestPlace`, so the tested geo code is reachable.
+- **Resolve and expose a single zone for a stay.** The guest payload should carry it, or the server should compute `openNow` and `openOn(date)`, so hours logic is written once.
+- **Add a production write path for coordinates, hours and price:** CSV ingest already supports coordinates, then geocoding with visible quality, then host entry.
+- **Fix `browseByLocality`,** whose filter disagrees with its interface comment (TD-26).
+- **Carried forward and not re-verified:** a shared Redis for tokens and rate limits, and Fastify JSON schemas on public routes.

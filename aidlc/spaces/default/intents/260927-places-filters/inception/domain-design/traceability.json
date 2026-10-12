@@ -1,0 +1,392 @@
+{
+  "stage": "domain-design",
+  "upstream_ids": [
+    "FR1",
+    "FR1.1",
+    "FR1.2",
+    "FR1.3",
+    "FR1.4",
+    "FR1.5",
+    "FR2",
+    "FR2.1",
+    "FR2.2",
+    "FR2.3",
+    "FR2.4",
+    "FR2.5",
+    "FR2.6",
+    "FR3",
+    "FR3.1",
+    "FR3.2",
+    "FR4",
+    "FR4.1",
+    "FR4.2",
+    "FR4.3",
+    "FR4.4",
+    "FR5",
+    "FR5.1",
+    "FR5.2",
+    "FR6",
+    "FR6.1",
+    "FR6.2",
+    "FR7",
+    "FR7.1",
+    "FR7.2",
+    "FR7.3",
+    "FR7.4",
+    "FR7.5",
+    "FR7.6",
+    "FR8",
+    "FR8.1",
+    "FR8.2",
+    "FR8.3",
+    "FR9",
+    "FR9.1",
+    "FR9.2",
+    "FR9.3",
+    "FR9.4",
+    "FR10",
+    "FR10.1",
+    "FR10.2",
+    "FR10.3",
+    "FR10.4",
+    "FR10.5",
+    "FR10.6",
+    "FR11",
+    "FR11.1",
+    "FR11.2",
+    "FR11.3",
+    "FR11.4",
+    "FR11.5",
+    "NFR1",
+    "NFR2",
+    "NFR3",
+    "NFR4",
+    "NFR5",
+    "NFR6",
+    "NFR7",
+    "NFR8"
+  ],
+  "coverage": [
+    {
+      "id": "FR1",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR1.{m} sub-requirements"
+    },
+    {
+      "id": "FR1.1",
+      "status": "OK",
+      "target": "DesignSystem"
+    },
+    {
+      "id": "FR1.2",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR1.3",
+      "status": "OK",
+      "target": "GuestPlaces"
+    },
+    {
+      "id": "FR1.4",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR1.5",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR2",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR2.{m} sub-requirements"
+    },
+    {
+      "id": "FR2.1",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR2.2",
+      "status": "OK",
+      "target": "Poi"
+    },
+    {
+      "id": "FR2.3",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR2.4",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR2.5",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR2.6",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR3",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR3.{m} sub-requirements"
+    },
+    {
+      "id": "FR3.1",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR3.2",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR4",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR4.{m} sub-requirements"
+    },
+    {
+      "id": "FR4.1",
+      "status": "OK",
+      "target": "GuestPlaces"
+    },
+    {
+      "id": "FR4.2",
+      "status": "OK",
+      "target": "HostCuration"
+    },
+    {
+      "id": "FR4.3",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR4.4",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR5",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR5.{m} sub-requirements"
+    },
+    {
+      "id": "FR5.1",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR5.2",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR6",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR6.{m} sub-requirements"
+    },
+    {
+      "id": "FR6.1",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR6.2",
+      "status": "OK",
+      "target": "GuestPlaces"
+    },
+    {
+      "id": "FR7",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR7.{m} sub-requirements"
+    },
+    {
+      "id": "FR7.1",
+      "status": "OK",
+      "target": "DesignSystem"
+    },
+    {
+      "id": "FR7.2",
+      "status": "OK",
+      "target": "GuestPlaces"
+    },
+    {
+      "id": "FR7.3",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR7.4",
+      "status": "OK",
+      "target": "GuestPlaces"
+    },
+    {
+      "id": "FR7.5",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR7.6",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR8",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR8.{m} sub-requirements"
+    },
+    {
+      "id": "FR8.1",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR8.2",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR8.3",
+      "status": "OK",
+      "target": "GuestPlaces"
+    },
+    {
+      "id": "FR9",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR9.{m} sub-requirements"
+    },
+    {
+      "id": "FR9.1",
+      "status": "OK",
+      "target": "HostCuration"
+    },
+    {
+      "id": "FR9.2",
+      "status": "OK",
+      "target": "HostCuration"
+    },
+    {
+      "id": "FR9.3",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "FR9.4",
+      "status": "OK",
+      "target": "HostCuration"
+    },
+    {
+      "id": "FR10",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR10.{m} sub-requirements"
+    },
+    {
+      "id": "FR10.1",
+      "status": "OK",
+      "target": "Poi"
+    },
+    {
+      "id": "FR10.2",
+      "status": "OK",
+      "target": "Locality"
+    },
+    {
+      "id": "FR10.3",
+      "status": "OK",
+      "target": "GuestContext"
+    },
+    {
+      "id": "FR10.4",
+      "status": "OK",
+      "target": "GuestContext"
+    },
+    {
+      "id": "FR10.5",
+      "status": "OK",
+      "target": "GuestContext"
+    },
+    {
+      "id": "FR10.6",
+      "status": "OK",
+      "target": "ApiContract"
+    },
+    {
+      "id": "FR11",
+      "status": "N/A",
+      "target": "Group heading; coverage is asserted against its FR11.{m} sub-requirements"
+    },
+    {
+      "id": "FR11.1",
+      "status": "OK",
+      "target": "PlacePreferences"
+    },
+    {
+      "id": "FR11.2",
+      "status": "OK",
+      "target": "PlacePreferences"
+    },
+    {
+      "id": "FR11.3",
+      "status": "OK",
+      "target": "PlacePreferences"
+    },
+    {
+      "id": "FR11.4",
+      "status": "OK",
+      "target": "PlacePreferences"
+    },
+    {
+      "id": "FR11.5",
+      "status": "OK",
+      "target": "HostCuration"
+    },
+    {
+      "id": "NFR1",
+      "status": "OK",
+      "target": "DesignSystem"
+    },
+    {
+      "id": "NFR2",
+      "status": "OK",
+      "target": "DesignSystem"
+    },
+    {
+      "id": "NFR3",
+      "status": "OK",
+      "target": "PlaceFiltering"
+    },
+    {
+      "id": "NFR4",
+      "status": "OK",
+      "target": "PlacePreferences"
+    },
+    {
+      "id": "NFR5",
+      "status": "N/A",
+      "target": "Testing practice applied in Construction; not realised by a component"
+    },
+    {
+      "id": "NFR6",
+      "status": "OK",
+      "target": "GuestContext"
+    },
+    {
+      "id": "NFR7",
+      "status": "OK",
+      "target": "PlacePreferences"
+    },
+    {
+      "id": "NFR8",
+      "status": "N/A",
+      "target": "No new metric or alert is required, so no component realises it"
+    }
+  ],
+  "reverse": []
+}

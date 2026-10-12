@@ -1,0 +1,30 @@
+{
+  "stage": "code-generation",
+  "unit": "u1-places-api",
+  "upstream_ids": ["FR2.2", "FR10.1", "FR10.2", "FR10.3", "FR10.4", "FR10.5", "NFR6", "BR1.1", "BR1.2", "BR1.3", "BR1.4", "BR2.1", "BR2.2", "BR2.3", "BR3.1", "BR3.2", "BR3.3", "BR3.4", "BR3.5", "BR4.1", "BR4.2", "BR5.1"],
+  "coverage": [
+    { "id": "FR2.2", "status": "OK", "target": "guestguideiq-app/src/poi/service.ts" },
+    { "id": "FR10.1", "status": "OK", "target": "guestguideiq-app/tests/bdd/places-filters-guest.test.ts" },
+    { "id": "FR10.2", "status": "OK", "target": "guestguideiq-app/src/guestaccess/routes.ts" },
+    { "id": "FR10.3", "status": "OK", "target": "guestguideiq-app/tests/bdd/places-filters-host.test.ts" },
+    { "id": "FR10.4", "status": "OK", "target": "guestguideiq-app/src/poi/routes.ts" },
+    { "id": "FR10.5", "status": "OK", "target": "guestguideiq-app/docs/frontend-contract-delta.md" },
+    { "id": "NFR6", "status": "OK", "target": "guestguideiq-app/tests/bdd/places-filters-host.test.ts" },
+    { "id": "BR1.1", "status": "OK", "target": "guestguideiq-app/src/poi/service.ts" },
+    { "id": "BR1.2", "status": "OK", "target": "guestguideiq-app/tests/unit/placeDistance.test.ts" },
+    { "id": "BR1.3", "status": "OK", "target": "guestguideiq-app/tests/unit/placeDistance.test.ts" },
+    { "id": "BR1.4", "status": "OK", "target": "guestguideiq-app/src/poi/repository.ts" },
+    { "id": "BR2.1", "status": "OK", "target": "guestguideiq-app/src/lib/propertyZone.ts" },
+    { "id": "BR2.2", "status": "OK", "target": "guestguideiq-app/tests/unit/propertyZone.test.ts" },
+    { "id": "BR2.3", "status": "OK", "target": "guestguideiq-app/src/guestaccess/service.ts" },
+    { "id": "BR3.1", "status": "OK", "target": "guestguideiq-app/src/guestcontext/service.ts" },
+    { "id": "BR3.2", "status": "OK", "target": "guestguideiq-app/src/poi/routes.ts" },
+    { "id": "BR3.3", "status": "OK", "target": "guestguideiq-app/src/guestcontext/service.ts" },
+    { "id": "BR3.4", "status": "OK", "target": "guestguideiq-app/tests/unit/ownerCatalogue.test.ts" },
+    { "id": "BR3.5", "status": "OK", "target": "guestguideiq-app/src/poi/routes.ts" },
+    { "id": "BR4.1", "status": "OK", "target": "guestguideiq-app/src/guestaccess/routes.ts" },
+    { "id": "BR4.2", "status": "OK", "target": "guestguideiq-app/src/app.ts" },
+    { "id": "BR5.1", "status": "OK", "target": "guestguideiq-app/docs/frontend-contract-delta.md" }
+  ],
+  "reverse": []
+}

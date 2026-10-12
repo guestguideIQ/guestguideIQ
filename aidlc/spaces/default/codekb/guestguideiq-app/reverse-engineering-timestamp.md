@@ -1,55 +1,80 @@
 # Reverse Engineering Timestamp — `guestguideiq-app`
 
-## Run Record
+## Run Record (current — focused merge)
 
 | Field | Value |
 |---|---|
-| **Repo analyzed** | `guestguideiq-app` — sibling of `aidlc/` at the workspace root, `C:\Projects\guestguideIQ\guestguideiq-app` |
-| **Reverse engineering performed** | 2026-09-07 |
-| **Analysis commit** | **`main` @ `76d190d5011110d5fe0d115b87e9754368965094`** — "Re-enable RDS deletion protection now that the stack is stable (#16)". Working tree clean, tracking `origin/main`; `git branch --contains HEAD` returns `main`. **This is the trunk, not a branch.** |
-| **Prior pass** | `40c8aed` on `feature/cors-support`. That branch has since merged into `main` (`b9c7c6e`, PR #15), and `76d190d` landed on top. `git diff 40c8aed..HEAD` touches **exactly one file** — `infra/lib/backend-api-stack.ts`, 8 insertions / 11 deletions — so the entire tree outside that file, `src/` and `tests/` included, is byte-identical to what the earlier pass analyzed. |
-| **Source fingerprint at snapshot** | `git:a08c7ba330b9278d7d7ec27568218b34efbcb838` |
-| **Working tree** | Clean |
-| **Scan breadth** | **Full repository rescan** — pre-scan snapshot `paths: ["./"]` |
-| **Prior CodeKB store** | **None** — `codekb-scope-diff --repo guestguideiq-app` returned `NO_STORE`. This is a first scan; all nine artifacts were authored from this run with no merge and no prior prose to preserve. |
-| **Intent** | `260907-frontend-app` — build the Property Owner and Guest-facing frontend consuming this backend |
-| **Pipeline** | Link 1 developer full-repo scan (`inception/reverse-engineering/developer-scan-guestguideiq-app.md`) → link 2 architect synthesis (this run) |
+| **Repo analyzed** | `guestguideiq-app`, the sibling of `aidlc/` at the workspace root (`C:\Projects\guestguideIQ\guestguideiq-app`) |
+| **Reverse engineering performed** | 2026-09-30 |
+| **Analysis commit** | `ce696291ac9493578dd356d189437b941199645d` ("Migrate on the exact image that ships, and check it", committed 2026-09-27). The working tree was clean. |
+| **Source fingerprint at snapshot** | `git:49135e73b66e6e3474163f359e2e5db57cb52dd5`, over the seven analyzed paths below. The minted fingerprint matches it. |
+| **Scan breadth** | **Focused scan.** The pre-scan snapshot paths were `prisma/schema.prisma`, `src/poi/`, `src/guide/`, `src/guestcontext/`, `src/destination/`, `src/locality/` and `src/guestaccess/`. |
+| **Prior store verdict** | **STALE.** The previous store was a full scan at `76d190d` for intent `260907-frontend-app`, and its analyzed paths have changed since. The human chose **Focused scan** over Full rescan. |
+| **Intent** | `260927-places-filters`: filters, distance, "open now", price and a map view for the guest Places tab, plus the host's places panel |
+| **Pipeline** | Link 1 is the developer focused scan (`intents/260927-places-filters/inception/reverse-engineering/developer-scan-guestguideiq-app.md`). Link 2 is the architect synthesis (this run), merged into the existing store. |
+
+## How This Store Was Merged
+
+This is a **focused merge into a STALE store**. Per the stage rules:
+
+- **Updated or extended from this run.** These sections are verified at `ce69629`: every section about places, POI categories, opening hours, price profiles, host curation (`PropertyListing` stance), the guest stay payload, the owner catalogue (`GET /v1/pois`), the owner stay-link supply side, timezone resolution, the geo helpers, and the data model in `prisma/schema.prisma`.
+- **Preserved from the prior store.** Sections outside the scanned area describe the repository **as of `76d190d` (2026-09-07)**. They were not re-verified. The repository has changed a lot since then: the module list, the model count and the migration count have all grown. Each preserved section therefore carries a banner. The Scope of Analysis block below demotes the prior deep coverage to `shallow`.
+- **Known-superseded prior claims are corrected in place, not silently kept.** The main ones are these:
+  - "No endpoint creates a `Stay`" (old TD-19 and old A.9). **This is superseded:** `POST /v1/stays` exists at `src/guestaccess/routes.ts:53`.
+  - "The guest cannot resolve favourited items". **This is superseded:** the guest payload now carries full `favoritedPOIs[]`.
+  - "11 entities, one migration". **This is superseded:** the architect counted 32 `model` blocks and 16 migration directories at `ce69629`. That is a count only; the models outside the scanned area were not analyzed.
+  - The old `GET /v1/pois` shape. **This is superseded:** the endpoint now takes `?propertyId=` and adds `address` and `hostAdded`.
 
 ## Verification Depth
 
-Claims across these nine artifacts fall into **three honest buckets**, stated separately so a reader knows which rest on fresh reads at the analysis commit.
+**1. Analyzed deeply by the developer at `ce69629`:** `prisma/schema.prisma`, `src/poi/`, `src/guide/`, `src/guestcontext/`, `src/destination/`, `src/locality/` and `src/guestaccess/`. Every claim was checked against source; the developer did not rely on the stale store.
 
-**1 — Re-verified at HEAD (`76d190d`) in this pass**, read again rather than carried forward: `git log`, `git status --short --branch`, `git branch --contains HEAD`, `git branch --no-merged main`, `git branch -r --no-merged main`, `git symbolic-ref refs/remotes/origin/HEAD`, and the complete `git diff 40c8aed..HEAD`; `infra/lib/backend-api-stack.ts` (the one changed file — the `deletionProtection` / `removalPolicy` block plus the task-definition `environment` block carrying `ALLOWED_ORIGINS` and `CHAT_PROVIDER`); and the complete CORS chain end to end — `package.json` (`@fastify/cors`), `src/config.ts`, `src/wiring.ts`, `src/app.ts` (the `app.register(cors, …)` call **and its options object**), `infra/bin/backend-api.ts` (`domainConfig.production.allowedOrigins`), `tests/unit/cors.test.ts` (read in full this pass; only enumerated in the prior one), and `.env.example` (read in full).
+**2. Architect spot-checks at `ce69629`,** made inside the analyzed paths to correct superseded preserved prose:
+- `src/guestaccess/routes.ts`, lines 1–300: the owner stay routes (`POST`, `GET`, `PATCH` and `DELETE /v1/stays`) and the full `GET /v1/stays/:token` response.
+- The `GuestPOIView` type (`src/guide/service.ts`).
+- The `GuestPlace`, `GuestHours`, `EnrichedGuestGuide`, `OwnerListing` and `OwnerAreaView` types (`src/guestcontext/service.ts`).
 
-**2 — Explicitly NOT re-executed this pass**: both test suites and the u1 coverage run. The recorded numbers (u1 39 files / 137 tests passing plus 1 skipped, lines 91.15 %; u2 15 files / 49 tests) were measured during the `40c8aed` pass, together with one throwaway probe test (since deleted; tree left clean) that empirically confirmed the app-level rate-limit `preHandler` fires. They are **carried forward, not re-measured** — justified because `src/` and `tests/` are byte-identical to `40c8aed`, so those results still describe this exact source. They remain measured numbers, not inferred ones; they are simply measured one commit earlier against identical bytes.
+The architect also made three observations **outside** the analyzed paths. These are directory listings or counts only, not analysis:
+- the `src/` directory listing (new modules `destination`, `guestcontext`, `hostnote`, `property` and `jobs`);
+- the `prisma/migrations/` directory count (16);
+- the `model` count in the schema (32).
 
-**3 — Carried forward from the `40c8aed` pass** on the same byte-identity justification: the API surface for all three contracts, the domain components, the data model, the build system, the dependency inventory, and the code-quality indicators. Nothing in the one-file delta touches any of them.
+**3. Skimmed by the developer,** as integration points only: `src/app.ts`, `src/config.ts`, `src/wiring.ts`, `src/internal/routes.ts`, `src/onboarding/propertyDetails.ts`, `src/onboarding/service.ts`, `src/lib/dayBoundary.ts`, `admin-api/src/` (at directory level), `prisma/migrations/`, the `prisma/seed*.ts` files, `prisma/localityContent/sedona.ts`, `docs/frontend-contract-delta.md`, `docs/csv-ingest-format.md`, `tests/` (file names and test titles only), `vitest.config.ts` and `.github/workflows/` (names only).
 
-Read line by line and understood: every `routes.ts` and every `service.ts` in both packages; all repository **port interfaces and record types**; the composition and cross-cutting files (`app.ts`, `internalApp.ts`, `server.ts`, `config.ts`, `wiring.ts`, `lib/*`, `auth/jwt.ts`, `auth/middleware.ts`, `ratelimit/*`, `chat/provider.ts`); `prisma/schema.prisma`; both READMEs and both `.env.example` files; all build, lint, format, and TypeScript configs; the Dockerfile and entrypoint; `.github/workflows/ci.yml`; u1's CDK app; and the two u1 contract integration tests.
+**4. Not executed in this run:** the test suites and coverage. The numbers in `code-quality-assessment.md` were measured at `40c8aed` and **no longer describe the current source**. The source has changed substantially since then, so treat them as historical.
 
-Skimmed at directory or signature granularity, **not** deeply verified: the Prisma **adapter bodies** below each exported port interface; the u1 BDD, unit, doubles, factories, and helpers test files (enumerated and run, but only `contract2.test.ts`, `contract3.test.ts`, and `buildTestApp.ts` were read); all of `admin-api/tests/`; u2's `config.ts`, `server.ts`, `wiring.ts`, `lib/*`, and `auth/jwt.ts`; u2's CDK stack body; and the init migration SQL (the Prisma schema was treated as authoritative and read in full).
-
-Skipped entirely as generated or vendored, and noted rather than analyzed: `node_modules/`, `dist/`, `coverage/` and their `admin-api/` and `infra/` equivalents, `infra/cdk.out/`, `admin-api/infra/cdk.out/`, `.git/`. All are gitignored; the build and coverage trees exist on disk as untracked local output.
-
-Claims in the other eight artifacts are bounded by this split. In particular, database-level field nullability beyond what the port record types declare, and the internal quality of individual test files, are **not** independently verified.
+**5. Carried forward from `76d190d` and not re-verified:** everything else. That covers authentication and tokens, CORS, onboarding, subscription, lead capture, chat, rate limiting, the internal API, `admin-api`, both CDK apps, CI/CD, Dockerfile and the dependency inventory.
 
 ## Freshness Caveat
 
-This store describes the repo **as of `76d190d` on `main`** — the trunk, not a branch. A consumer reading `main` will find everything documented here, including the full CORS chain, which merged in `b9c7c6e` (PR #15) and is no longer branch-dependent. The earlier freshness caveat on this store — that the CORS work existed only on an unmerged `feature/cors-support` — **is withdrawn.**
-
-Two caveats remain:
-
-- **`origin/HEAD` still points at `build-and-test-ci-pipeline-fixes`, not `main`**, so a fresh `git clone` checks out a stale non-trunk branch by default. Anyone verifying these artifacts against a new clone must `git checkout main` first. The unmerged backlog is otherwise down to one local branch (`fix/wire-missing-jwt-secrets`) and two remote, from seven.
-- **Test and coverage numbers were measured at `40c8aed`, not re-executed at `76d190d`** — see Verification Depth bucket 2. They are valid for this source because `src/` and `tests/` are byte-identical, and they would need re-running the moment either tree changes.
+- The backend is under active development. A merge that touches the seven analyzed paths invalidates this store's deep coverage; the rerun guard will then report STALE.
+- **Production data was not queried.** Place coordinate coverage, `PlaceHours` row counts and `PlaceProfile.priceLevel` values in the live database are **unknown**. The claim "0 of 24 places have coordinates" covers the **repository-defined** Sedona catalogue only. Rows ingested by CSV or by hand may differ.
 
 ## Scope of Analysis
 
 ```yaml
 scope_version: 1
-kind: full
-intent: 260907-frontend-app
-fingerprint: a08c7ba330b9278d7d7ec27568218b34efbcb838
+kind: partial
+intent: 260927-places-filters
+fingerprint: 49135e73b66e6e3474163f359e2e5db57cb52dd5
 analyzed:
+  paths:
+    - prisma/schema.prisma
+    - src/poi/
+    - src/guide/
+    - src/guestcontext/
+    - src/destination/
+    - src/locality/
+    - src/guestaccess/
+  components:
+    - persistence
+    - poi
+    - guide
+    - guestcontext
+    - destination
+    - locality
+    - guestaccess
+shallow:
   paths:
     - ./
     - README.md
@@ -63,29 +88,48 @@ analyzed:
     - Dockerfile
     - docker-entrypoint.sh
     - .github/workflows/ci.yml
-    - prisma/schema.prisma
+    - .github/workflows/
     - src/
+    - src/app.ts
+    - src/config.ts
+    - src/wiring.ts
     - src/auth/
     - src/ratelimit/
     - src/lib/
+    - src/lib/dayBoundary.ts
     - src/chat/
     - src/internal/
+    - src/internal/routes.ts
     - src/identity/
     - src/onboarding/
-    - src/guide/
-    - src/poi/
+    - src/onboarding/propertyDetails.ts
+    - src/onboarding/service.ts
     - src/event/
     - src/subscription/
-    - src/guestaccess/
     - src/chatmodule/
     - src/leadcapture/
-    - src/locality/
+    - tests/
     - tests/integration/
+    - tests/bdd/
+    - tests/unit/
+    - tests/doubles/
+    - tests/factories/
+    - tests/helpers/
     - infra/
+    - docs/frontend-contract-delta.md
+    - docs/csv-ingest-format.md
+    - prisma/migrations/
+    - prisma/seed.ts
+    - prisma/seedData.ts
+    - prisma/seedBlueRidge.ts
+    - prisma/seedLocalityContent.ts
+    - prisma/localityContent/sedona.ts
+    - admin-api/
     - admin-api/README.md
     - admin-api/package.json
     - admin-api/.env.example
     - admin-api/vitest.config.ts
+    - admin-api/src/
     - admin-api/src/app.ts
     - admin-api/src/auth/middleware.ts
     - admin-api/src/internal/
@@ -93,31 +137,6 @@ analyzed:
     - admin-api/src/events/
     - admin-api/src/accounts/
     - admin-api/src/localities/
-  components:
-    - identity
-    - onboarding
-    - guide
-    - poi
-    - event
-    - subscription
-    - guestaccess
-    - chatmodule
-    - leadcapture
-    - locality
-    - admin-api
-    - app-runtime
-    - auth
-    - ratelimit
-    - persistence
-    - infra-u1
-    - infra-u2
-shallow:
-  paths:
-    - tests/bdd/
-    - tests/unit/
-    - tests/doubles/
-    - tests/factories/
-    - tests/helpers/
     - admin-api/tests/
     - admin-api/src/config.ts
     - admin-api/src/server.ts
@@ -125,12 +144,10 @@ shallow:
     - admin-api/src/lib/
     - admin-api/src/auth/jwt.ts
     - admin-api/infra/
-    - prisma/migrations/
     - src/db/
     - src/auth/password.ts
     - src/auth/refreshTokenStore.ts
     - src/lib/ids.ts
-    - src/guide/propertyLookup.ts
-    - src/locality/domainCache.ts
-    - src/subscription/stripeAdapter.ts
 ```
+
+`./` appears under `shallow.paths` only as the literal demotion of the prior store's full-repo deep coverage. That coverage can no longer be re-verified, so it is recorded here and not dropped. It does **not** claim that the whole repository was skimmed in this run.

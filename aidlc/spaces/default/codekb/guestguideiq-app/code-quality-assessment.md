@@ -1,114 +1,123 @@
 # Code Quality Assessment — `guestguideiq-app`
 
-**Derived from**: the developer full-repo scan of 2026-09-07, re-run over current HEAD (branch `main`, HEAD `76d190d`; the earlier pass ran at `40c8aed`, and `git diff 40c8aed..HEAD` touches only `infra/lib/backend-api-stack.ts`, leaving `src/` and `tests/` byte-identical). **Both test suites and the u1 coverage run were executed during the `40c8aed` pass and are carried forward on that byte-identity, not re-executed at `76d190d`** — the numbers below are measured, not read off a badge. Test *directories* under `tests/bdd/`, `tests/unit/`, `tests/doubles/`, `tests/factories/`, `tests/helpers/` and all of `admin-api/tests/` were enumerated and run but **not read line by line**, so claims about individual test quality inside them are not made.
+**Derived from** two passes:
+- The **focused scan of 2026-09-30** at `ce69629`. It covered the places, curation and stay area and the data model, including the test inventory for that area by file name and test title. **No tests were executed in this run.**
+- The **prior full scan** at `76d190d`. Sections resting on it are marked *(carried forward, not re-verified)*. The test and coverage numbers in them were measured at `40c8aed`. **They no longer describe the current source**, which has since gained several modules, 15 migrations and a real-Postgres integration tier.
 
 ---
 
 ## Verdict
 
-This is a **well-built backend with a small number of sharp, specific gaps**. The engineering discipline — layering, CI, secret handling, comment traceability, marker hygiene — is above the norm and should be inherited wholesale by the frontend repo. The gaps are not sloppiness; they are unfinished integrations (chat vendor, mail transport, stay creation) and a handful of deliberate shortcuts that were documented at the time and never revisited.
+**Focused area, at `ce69629`.**
+- The places and curation code is carefully written, and it is unusually explicit about *why*.
+- Its geo core is well tested.
+- It models "unknown" honestly throughout.
+- Its weaknesses are **reachability and data**, not code quality: tested distance code that nothing routes to, a guest projection that drops coordinates, no production writer for coordinates, hours or price, and two stance systems running side by side.
 
-## Test Coverage — measured
+**Whole repo, carried forward from `76d190d`.** A well-built backend with a small number of sharp gaps.
 
-| Suite | Result | Time |
+## Focused Test Inventory (verified by file name and test title at `ce69629`; not executed)
+
+| Test file | Tests | Covers |
 |---|---|---|
-| u1 `npx vitest run tests/` | **39 files passed, 1 skipped (40); 137 tests passed, 1 skipped (138)** | 2.85 s |
-| u2 `npx vitest run tests/` | **15 files, 49 tests, all passed** | 1.29 s |
+| `tests/unit/geo.test.ts` | 13 | Haversine, bounding box at every bearing, poles, coordinate validation |
+| `tests/unit/poiPlaces.test.ts` | 27 | `nearby` nearest first, unlocated places excluded, truncation, `nearProperty` returning `located:false` |
+| `tests/integration/places.pg.test.ts` | 14 | Half a coordinate refused by Postgres; `nearby` excludes far, suppressed and unlocated places |
+| `tests/unit/guestContext.test.ts` | 23 | Hours by day with explicit closure (`:202`), seasonal rules (`:241`), featured before listed with hidden and offered never shown (`:399`), a favourite with no listing counted as featured (`:426`), category attachment (`:625-651`) |
+| `tests/unit/poiCategories.test.ts` | 7 | Category-level and exact resolution |
+| `tests/integration/guestContext.pg.test.ts` | 11 | Hours, features, fit and profile read (`:192`) |
+| `tests/bdd/guest-context.test.ts` | 8 | Guest context scenarios |
+| `tests/bdd/host-content.test.ts` | 13 | Host content scenarios |
 
-The skipped file is `tests/integration/dbSmoke.test.ts`, gated on `RUN_DB_SMOKE_TEST=1`, which is set only in CI where a real Postgres 16 service container runs.
+**Gaps for the intent:**
+- **No code and no test evaluates "open now"** or "open on a given date".
+- **`closesNextDay` is only passed through.** No test exercises what it means: a span across midnight.
+- **No test filters by price,** and none covers the `priceLevel = 0` case against the 1–4 documentation.
+- **No endpoint-level distance test,** because no endpoint exposes distance.
+- **Host-added places resolving to category "Other"** is an inference from the resolver and is untested.
 
-**u1 coverage (`--coverage`, executed during the scan):**
+**Coverage configuration** (skimmed at `ce69629`): `vitest.config.ts` includes `src/**/*.ts`, excludes `server.ts`, `db/prismaClient.ts`, `wiring.ts` and `jobs/**`, and sets `thresholds.lines: 80`. Whether the current source meets the floor was **not measured** in this run.
 
-| Metric | Result |
+## Measured Results *(carried forward from the `40c8aed` measurement; historical)*
+
+| Suite | Result then |
 |---|---|
-| **Lines** | **91.15 % (649/712)** |
-| Statements | 89.37 % |
-| Branches | 76.53 % |
-| Functions | 92.24 % |
+| u1 | 39 files and 137 tests passed, 1 skipped; lines 91.15 %, branches 76.53 % |
+| u2 | 15 files and 49 tests passed |
 
-Comfortably over the **80 % line floor** configured in `vitest.config.ts` (`thresholds: { lines: 80 }`, provider `v8`, `include: ['src/**/*.ts']`). u1 excludes `src/server.ts`, `src/db/prismaClient.ts`, `src/wiring.ts` from coverage; u2 excludes `src/server.ts`, `src/wiring.ts`.
+These numbers predate the `guestcontext`, `destination`, `hostnote`, `property` and `jobs` modules and every migration after the initial one. Re-run the suites before citing any coverage figure for the current code.
 
-Weakest directories by line coverage: `src` (79.31 %), `src/poi` (80.76 %), `src/event` (83.33 %), `src/guide` (83.75 %), `src/guestaccess` (85.71 %, and only **70 % of functions** — the dead `createStay` code sits in this directory).
+## Linting, Formatting, CI/CD and Security *(carried forward from `76d190d`, not re-verified)*
 
-**Test data strategy** (documented in the README as a deliberate deviation): every repository port has an in-memory double under `tests/doubles/`, all thirteen sharing one `fakeDb.ts` object so cross-module BDD scenarios see consistent state. The stated reason is that the code-generation environment had neither Docker nor local PostgreSQL. Prisma adapters are covered separately in `tests/unit/repositories/*.test.ts` against a mocked `PrismaClient`.
+**Linting and formatting.**
+- ESLint uses `eslint:recommended`, `@typescript-eslint/recommended` and `prettier`.
+- **No type-aware linting** (`parserOptions.project: false`). The developer re-noted this at `ce69629` from `team.md`; the config was not re-read.
+- Prettier's `format:check` is blocking.
 
-**Named coverage gap**: the rate-limit `preHandler` wiring in `app.ts` has **no test at all** — a grep for `429` / `RATE_LIMITED` / `rateLimit` across `tests/` matches only `buildTestApp.ts`'s store construction. The developer verified firing empirically instead (12 consecutive `POST /v1/accounts` produced `404,404,404,404,404,429,429,429,429,429,429,429`). **CORS coverage is thin**: `tests/unit/cors.test.ts` (read in full at `76d190d`) has three tests, all against `GET /health` — an allowed origin is reflected in `Access-Control-Allow-Origin`, a non-allowlisted origin is not, and an unconfigured harness reflects nothing. **Nothing asserts `Access-Control-Allow-Credentials`, and there is no preflight `OPTIONS` test and no cross-origin test against a real `/v1/...` route** — the credentials-disabled behaviour the frontend's auth design depends on is unguarded by any regression test.
+**CI chain at `76d190d`.** Every step was blocking: lint, format, typecheck distinct from build, build, migrate, coverage (80 %), `npm audit`, gitleaks, Semgrep, CDK synth and Checkov.
+- Staging deploy and post-deploy tests were `echo` placeholders.
+- Production deploy was real and gated on a required reviewer.
+- A second workflow, `load-locality-content.yml`, now exists; only its name was observed.
 
-## Linting and Formatting
+**Security.**
+- No hardcoded secrets.
+- pino redaction was in place.
+- Uniform failure responses on authentication and stay links.
 
-- **ESLint** at `.eslintrc.cjs` (root) and `admin-api/.eslintrc.cjs` (identical): `eslint:recommended` + `plugin:@typescript-eslint/recommended` + `prettier`. Notable rules: `no-unused-vars` error with a `^_` escape, `no-explicit-any` **warn** (off in `tests/`), `eqeqeq` always, `no-empty` with `allowEmptyCatch: false`, `no-console` warn (permits `console.error`).
-- **`parserOptions.project: false` — there is no type-aware linting.** Every `@typescript-eslint` rule requiring type information is unavailable: `no-floating-promises`, `no-misused-promises`, `await-thenable`, and the rest. This matters because the code uses `void app.register(...)` and several fire-and-forget async patterns that exactly those rules exist to catch.
-- **Prettier** at `.prettierrc`: semicolons, single quotes, trailing comma all, printWidth 100, tabWidth 2, arrowParens always. `format:check` is a **blocking** CI step.
-
-## CI/CD
-
-One file, `.github/workflows/ci.yml`. Triggers: `pull_request` → `main` and `push` → `main`. Node 24.
-
-**`backend-api (u1)` job** — every step blocking, with a Postgres 16 service container:
-
-`npm ci` → **lint** → **format:check** → **typecheck** (distinct from build) → **build** → `prisma migrate deploy` → **`test:coverage`** with `RUN_DB_SMOKE_TEST=1` (the 80 % floor enforced by the vitest config) → **`npm audit --audit-level=high`** → **gitleaks** → **Semgrep** (`p/ci`, `p/typescript`) → **CDK synth** → **Checkov** against `infra/cdk.out`.
-
-**`admin-api (u2)` job**: the same chain minus Postgres and Prisma.
-
-This chain satisfies every gate `project.md` mandates for backend work — green build, lint, test, coverage; blocking dependency-vulnerability scanning; blocking secret scanning; blocking linter and formatter; a typecheck step separate from build. It is the single strongest asset in the repo and **the frontend repo should inherit its shape wholesale**.
-
-Two structural notes on the deploy half:
-- `deploy-staging`, `integration-test-staging`, and `smoke-test-production` are **placeholder `echo` no-ops** by explicit design, blocked on an OIDC deploy role and on u1 publishing the SSM parameters u2 needs.
-- `deploy-production` is **real**: OIDC credentials, `cdk deploy GuestGuideIQ-BackendApi-production --require-approval never --no-rollback --force`, then a one-off ECS `run-task` for `prisma migrate deploy`, gated on the `production` GitHub Environment's required reviewer. Its `needs:` is `[backend-api, admin-api]` — the staging dependency is deliberately **not** wired.
-
-Every third-party action is pinned to a commit SHA (with the tag in a trailing comment), and every Checkov skip carries a documented reason at the skip site.
+The focused scan adds that **the guest payload now carries `wifi.password`**. The code comment states the response "must never be logged". The pino redaction list recorded at `76d190d` names `password` at field level; whether that list covers a nested `property.wifi.password` in a logged response body was **not verified**.
 
 ## Documentation Quality
 
-- **Two substantial, accurate, current READMEs** (root and `admin-api/`) covering stack, layout, local setup, test commands, and deployment.
-- **`.env.example` in both packages** documents its variables with a comment and **no values** — with one verified omission: the root `.env.example` never mentions `ALLOWED_ORIGINS`, which `src/config.ts` reads, so a local developer silently gets `origin: false` unless they know to set it. (This corrects the earlier claim that every variable is named.)
-- **Source comments are unusually thorough and traceability-oriented**: nearly every non-obvious decision cites the design artifact that motivated it (`security-design.md`, `BR8.3`, `NFR3.11`, `AC4.3.2`, …), and several carry a post-mortem of a real deployment failure.
-- **Absent**: no generated API reference, **no OpenAPI file**, no ADR directory, no CHANGELOG, no CONTRIBUTING.
-
-## Security Posture
-
-Strong, with no findings of the "credentials in code" class:
-- **No hardcoded secrets anywhere.** `config.ts` reads every one from `process.env` and fails fast at startup; Secrets Manager is wired in CDK.
-- pino redaction covers `password`, `passwordHash`, `authorization`, `token`, `stayToken`.
-- Non-root container user; RDS in private subnets; the internal listener bound to loopback and never `EXPOSE`d or placed in a target group.
-- Deliberate information hiding in failure paths (identical `401` for unknown-user and wrong-password; identical `410` for all four stay-link failure modes; `202` always on reset request).
-- Only two `eslint-disable` comments repo-wide, both `no-console` on a fatal-startup `console.error`.
-- **Zero `TODO` / `FIXME` / `HACK` / `XXX` comments and zero `@ts-ignore` / `@ts-expect-error`** across all TypeScript in `src/`, `tests/`, `admin-api/`, and `infra/`.
-
-## Architecture Discipline
-
-Every u1 module is the same `repository.ts` / `service.ts` / `routes.ts` triad, consistently applied with no observed violation; `wiring.ts` is the sole composition root; no circular imports. No file exceeds 175 lines. u1 `src/` totals 3 268 lines against 3 378 lines of tests.
+- **Verified at `ce69629`.** The analyzed modules carry detailed, decision-level comments that cite business rules and acceptance criteria (BR8.x, AC4.1.1, AC1.9.5). `docs/frontend-contract-delta.md` is a hand-kept contract.
+- **Contract drift, verified.** The hand-kept contract already disagrees with the schema on the price scale (TD-22). This is the drift risk `team.md` names for hand-written contracts.
+- **Still absent.** There is no OpenAPI document.
 
 ---
 
 ## Technical Debt Register
 
-Nineteen signals, in the developer's original numbering so downstream references stay stable. Items marked **[FE]** directly shape the frontend design; the rest are recorded for completeness.
+Prior IDs keep their numbers so references stay stable. TD-1 to TD-19 come from the `76d190d` scan and are carried forward unless marked otherwise. TD-20 onward are new from the focused scan at `ce69629`.
 
-| ID | Signal | Impact |
+### New at `ce69629` (the places-filters area; verified)
+
+| ID | Signal | Impact on intent `260927-places-filters` |
 |---|---|---|
-| **TD-1** (CORS half **RESOLVED**; residual branch hygiene) | **The CORS work is now on `main`** — `b9c7c6e` merged PR #15, and the `@fastify/cors` dependency, `config.allowedOrigins`, the `ALLOWED_ORIGINS` task-definition var, and the `domainConfig.production.allowedOrigins` entry were all re-read on the trunk at `76d190d`. Nothing CORS-related depends on an unmerged branch any more. **What remains is branch hygiene**: `origin/HEAD` still points at the stale non-trunk branch `build-and-test-ci-pipeline-fixes`, so a fresh `git clone` checks out the wrong branch by default — an onboarding trap, trivially fixed with `git remote set-head origin main` plus changing the default branch in the GitHub repo settings. The backlog has otherwise improved from seven unmerged branches to **one local (`fix/wire-missing-jwt-secrets`) and two remote**, and both recent changes (#15, #16) went through pull request, consistent with `project.md`'s Mandated PR-review rule. | Onboarding trap only — no longer blocking. **But CORS being merged is not the same as the frontend being able to call the API**: the allowlist excludes every frontend origin and `credentials` is off. Those frontend-blocking facts are recorded in `architecture.md` constraint 3 and `api-documentation.md` § CORS, not as a debt signal here. |
-| **TD-2** **[FE]** | **Itinerary chat has no LLM vendor.** `CHAT_PROVIDER=null` in `.env.example` and in the CDK task definition. `NullChatProvider` always throws; the only 200 path is the sparse-content fallback (<3 curated items). US2.3 cannot be demonstrated end to end. | Feature non-functional |
-| **TD-3** **[FE]** | **No machine-readable API contract.** No OpenAPI/Swagger, no JSON Schema export, no published types package, no generated client — and no Fastify schemas on u1's public routes, so nothing is derivable from the running app. | Frontend hand-writes and duplicates every type |
-| **TD-4** **[FE]** | **PDF import is a client-side responsibility with no server support.** No `@fastify/multipart`, no upload endpoint, no object storage, no file-size limit anywhere in `src/` or `infra/`. | Unowned work lands on the frontend |
-| **TD-5** **[FE]** | **Password-reset tokens are generated and thrown away.** `identity/routes.ts` ignores the `{ resetToken }` return; no mailer, no SES construct, no queue. `POST /v1/auth/reset/confirm` is dead in practice. | Reset flow untestable end to end |
-| **TD-6** **[FE]** | **`PATCH /v1/subscriptions` cancels on any unrecognised action** — a nested ternary whose final `else` is `cancel`. A missing body, a typo, or a future action value silently cancels. There is also **no `GET /v1/subscriptions`**. | Dangerous call; no safe way to render plan state |
-| **TD-7** **[FE]** | **`locality.visualStyling` is an unschematized JSON blob** (`Record<string, unknown> \| null`; `Json?` in Prisma). Nothing constrains, validates, or documents its keys, yet the guest UI themes from it (BR9.6). | Theming contract is this intent's to define |
-| **TD-8** **[FE]** | **Error envelope has no correlation id.** `toErrorEnvelope` emits only `{ code, message, details? }`. OTel `traceparent` is propagated between services but never surfaced to the client. | Frontend error reports cannot be tied to server traces |
-| TD-9 | **Rate limiting has zero test coverage.** No test asserts a 429 or exercises the `preHandler` wiring, which is registered *after* route registration and uses hand-rolled path matching (`path.startsWith('/v1/stays/') && !path.endsWith('/chat') && method === 'GET'`). Verified empirically during the scan; brittle against future route additions. | Unguarded regression risk |
-| **TD-10** **[FE]** | **Two public routes throw 500 on a missing body.** The `guide/routes.ts` favorites handler destructures `request.body` with no `?? {}` fallback, unlike every other handler in the file. Root cause is the absence of Fastify request schemas on u1's public surface (u2 has them). | Malformed requests can surface as `500`, not `400` |
-| TD-11 | **Three Node majors in play** — `engines.node >= 18.18`, Docker `node:20-slim`, CI Node 24. The tested runtime is not the shipped runtime. | Latent runtime divergence |
-| **TD-12** **[FE]** | **Single-instance state behind a multi-task service.** `InMemoryRefreshTokenStore` and `InMemoryRateLimitStore` are per-process while production runs `desiredCount: 2`, autoscaling to 6. Refresh-token revocation is not shared, so a rotated token replayed against another task is accepted; each rate-limit bucket is multiplied by the task count. Both files name Redis as the upgrade path; neither is wired. | Frontend silent-re-auth must not assume reliable single-use semantics |
-| TD-13 | **Staging is bypassed in the real deploy path.** `deploy-staging` and `integration-test-staging` are `echo` placeholders while `deploy-production` is fully wired and depends only on the two PR-gate jobs; the workflow comment says "Environment Provisioning wired production directly, skipping staging-first validation." **This is in tension with `project.md`'s Mandated rule** ("ALWAYS require manual approval before a production deployment … deployments first go to a staging environment") **and the matching Forbidden rule.** The manual-approval half **is** honoured via the `production` GitHub Environment's required reviewer; the staging-first half is not. | Compliance gap; the frontend repo must **not** inherit this pattern |
-| TD-14 (**RESOLVED**) | **RDS deletion protection has been re-enabled for production.** Commit `76d190d` ("Re-enable RDS deletion protection now that the stack is stable", PR #16) replaced the unconditional `deletionProtection: false` with `deletionProtection: isProd`, so production gets deletion protection while `dev`/`staging` do not — the intended posture. `removalPolicy` is unchanged (`isProd ? RETAIN : DESTROY`), so **production now carries both guards**. The replacement comment records the original bring-up rationale (three `ROLLBACK_FAILED` occurrences where deletion protection blocked rollback of a never-completed create) and notes the stack has since reached `CREATE_COMPLETE` and runs stably. | **No open item remains.** |
-| TD-15 | **No DNS record for the production API domain.** A production ACM certificate ARN is hardcoded (with a `-c productionCertificateArn` context override) and the stack outputs only `PublicApiUrl = loadBalancer.loadBalancerDnsName`. **No Route 53 construct exists anywhere**, so `api.guestguideiq.com` → ALB is manual and out of band. | Untracked infrastructure state |
-| TD-16 | **u2's CDK stack is not deployable** — it imports shared VPC / cluster / security group / subnet ids via SSM parameters u1's stack does not publish. Documented in `admin-api/README.md` and at the top of the stack file. | Ops tool cannot ship |
-| TD-17 | **No type-aware linting** — `parserOptions.project: false` in both ESLint configs disables `no-floating-promises`, `no-misused-promises`, `await-thenable`, and every other type-dependent rule. Relevant given `void app.register(...)` and several fire-and-forget async patterns. | Class of bugs the linter cannot see |
-| TD-18 | **Untracked build artifacts on disk** — `dist/`, `coverage/`, `admin-api/dist/`, `admin-api/coverage/`, `infra/cdk.out/`, `admin-api/infra/cdk.out/`. All gitignored; noted only because they inflate a naive directory walk. | Cosmetic |
-| **TD-19** **[FE]** | **`guestaccess`'s `createStayService` is dead code** — `StayService.createStay` (`src/guestaccess/service.ts` lines 62–77) is referenced by nothing. **No endpoint anywhere creates a `Stay`**, yet the whole Guest app hangs off `GET /v1/stays/:token`. Stays exist only via `tests/factories/stayFactory.ts`. | **Blocking** — the Guest frontend has no supply side; a `POST /v1/stays` is a prerequisite backend change |
+| **TD-20** | **Place coordinates exist in the schema but not in production content or the guest payload.** `POI.latitude` and `longitude` are nullable, with the paired CHECK `pois_geo_paired` (`schema.prisma:426-439`; migration `20260918000000_poi_event_location_and_host_notes`, lines 260-282). The sources are all uncoordinated: the Traumeri import adds 19 POIs without coordinates (`migrations/20260912000000_import_traumeri_guidebook/migration.sql:34-142`); the production loader's `LocalityPOI` type has no coordinate field and adds 5 Sedona places (`prisma/localityContent/sedona.ts:11-16`); host-added places cannot have coordinates (`guestcontext/repository.ts:205-210`, `:556-573`). Only dev seed data has coordinates (`prisma/seedData.ts:167-283`). `toGuestPOI` drops them anyway (`guide/service.ts:231-254`). **0 of the 24 repository-defined places are located. The live count is unknown**; CSV ingest supports coordinates (`docs/csv-ingest-format.md:47`). | **Blocking** for distance and map |
+| **TD-21** | **Hours and price have a schema and a guest projection, but nothing in the product writes them.** `PlaceHours` and `PlaceProfile` are only read in `src/` (`guestcontext/repository.ts:383-407`). `admin-api` has no writer. Only `prisma/seedBlueRidge.ts` writes them, and it is dev-sample only and refuses production (`:42-57, 110-116`). `sedona.ts:100` says "NO OPENING HOURS, NO PRICES". `docs/frontend-contract-delta.md:219` says "Nothing in this section is ingested by the product yet". | **Blocking** for open-now and price in production. These filters would render all "unknown". |
+| **TD-22** | **The price-level scale is documented two ways.** The schema CHECK is 0–4 with 0 meaning free (`schema.prisma:1086, 1091-1092`). The guest type and the contract doc say 1–4 (`guestcontext/service.ts:101`, `docs/frontend-contract-delta.md:208`). `PlaceFeature free_entry` and the deprecated `POI.isFree` overlap with it. | The scale must be resolved before a price filter is specified. |
+| **TD-23** | **Two stance systems run side by side.** Legacy `HostNote` drives `recommended` and ordering (`guide/service.ts:189-229, 377-406`). `PropertyListing.stance` drives `GuestPlace.stance`, filtering and sorting (`guestcontext/service.ts:417-422, 531-540`). The deprecated `GuideContent.favoritedPOIIds` is still the source of the guest set (`schema.prisma:333-334`; `guide/service.ts:378`). | "Host picks" has two candidate fields. Every guest-visible place is already a host choice. |
+| **TD-24** | **Category has two precisions.** `POI.categoryId` points at `poi_categories` (created outside Prisma). Production places are labelled only at category level, through legacy text (`poiCategories.ts:163-166`). Host-added places use a closed vocabulary (`hostContent.ts:28-37`) that will probably resolve to `null`, which displays as "Other" (an inference from `:243-246`, untested). The `locality_category_counts` view counts legacy text and is unmodelled (`schema.prisma:578-581`). | Category groups may show "Other"; per-property counts must be computed from the payload. |
+| **TD-25** | **Filtering and distance are not exposed server-side, and no timezone reaches the guest.** No read endpoint filters or sorts by category, hours, price or stance. `nearby` and `nearProperty` are unrouted (`poi/service.ts:97-99, 178-200, 257-261`). The owner catalogue is unpaginated with six fields (`poi/service.ts:219-227`; `poi/repository.ts:166-171`). The guest payload has no zone; `/v1/localities/current` omits it on purpose (`locality/routes.ts:29-31`). `hoursOf` evaluates against the stay window, not a date (`guestcontext/service.ts:505-529`). | Distance, map and open-now need backend API work. Client-side filtering is otherwise viable over a small, fully materialized set. |
+| **TD-26** | **`browseByLocality` has a latent bug.** It calls `listByLocality`, which filters `status: 'published'` (`poi/repository.ts:166-171`), while the interface doc says the owner list "stays unfiltered" so that hosts can see suppressed rows (`:116-123`). | The host places panel may hide rows the design intends hosts to see. |
+| **TD-27** | **Minor.** The bounding-box antimeridian clamp is a documented limit (`geo.ts:57-59`). `PlaceHours.opens` and `closes` have no `HH:MM` format CHECK or validation. `Property.timezone` has no writer in `src/`; only an out-of-band geocode path would set it (`schema.prisma:230-233`). | Open-now logic must tolerate malformed time strings. Zone resolution will usually fall to the locality or UTC. |
 
-## What the Frontend Repo Should Inherit, Not Re-Litigate
+### Carried forward from `76d190d`, with status updates where the focused scan or architect spot-checks reached
 
-Named positively so it is not lost among the debt: a clean and consistently applied ports-and-adapters layering; a single shared error envelope across all three contracts; the **full blocking CI gate** (lint, format, typecheck-distinct-from-build, test, 80 % coverage floor, `npm audit`, gitleaks, Semgrep, Checkov, SHA-pinned actions); 91 % line coverage on u1 with a green 137 + 49 test suite; zero TODO/FIXME markers and zero `@ts-ignore` repo-wide; no hardcoded secrets; and the habit of citing the motivating design artifact in the comment next to a non-obvious decision.
+| ID | Signal (at `76d190d`) | Status at `ce69629` |
+|---|---|---|
+| TD-1 | CORS merged; an `origin/HEAD` branch-hygiene issue | Not re-verified |
+| TD-2 | Chat has no LLM vendor | Not re-verified |
+| TD-3 | No machine-readable API contract | **Still true.** `docs/frontend-contract-delta.md` is hand-kept and already drifting (TD-22). |
+| TD-4 | PDF import is client-side only | Not re-verified |
+| TD-5 | Reset tokens are discarded | Not re-verified |
+| TD-6 | `PATCH /v1/subscriptions` cancels on an unknown action; no GET | Not re-verified |
+| TD-7 | `visualStyling` is an unschematized blob | Still `Record<string, unknown> \| null` in the guest payload (spot-check) |
+| TD-8 | No correlation id in the error envelope | Not re-verified |
+| TD-9 | The rate-limit `preHandler` is untested and uses string path matching | The path matching is still present at `src/app.ts:206` (grep); tests were not re-checked |
+| TD-10 | `POST /v1/guides/:id/favorites` returns 500 on a missing body | **Resolved.** The handler now uses `request.body ?? {}` with a comment recording the fix (`guide/routes.ts:69-72`, spot-check). |
+| TD-11 | Three Node majors | Not re-verified |
+| TD-12 | Per-process refresh-token and rate-limit stores | Not re-verified |
+| TD-13 | Staging bypassed in the real deploy path | Not re-verified |
+| TD-14 | RDS deletion protection | Resolved at `76d190d` |
+| TD-15 | No Route 53 record | Not re-verified |
+| TD-16 | u2 CDK stack not deployable | Not re-verified |
+| TD-17 | No type-aware linting | Believed unchanged; the config was not re-read |
+| TD-18 | Untracked build artifacts on disk | Cosmetic; not re-verified |
+| TD-19 | No endpoint creates a `Stay` | **Resolved.** `POST`, `GET`, `PATCH` and `DELETE /v1/stays` exist (`src/guestaccess/routes.ts:53-186`, spot-check within an analyzed path). |
 
-Two things it should **not** inherit: the staging bypass (TD-13) and the absence of type-aware linting (TD-17).
+## What a Places-Filters Design Should Preserve
+
+- **Honest absence.** Null means unknown. Every filter needs an "unknown" state, never a coerced default.
+- **Stay-scoped guest data.** Events are per stay; places are per host. Stance hides silently.
+- **Tested geo helpers.** Reuse `poi/geo.ts` or route `nearProperty`; do not reimplement distance.
+- **The database-enforced coordinate pairing.** Any new writer must satisfy it.

@@ -1,0 +1,51 @@
+{
+  "unit": "u3-guest-places",
+  "stage": "code-generation",
+  "upstream_ids": [
+    "FR1.3",
+    "FR4.1",
+    "FR6.2",
+    "FR7.2",
+    "FR7.4",
+    "FR8.3",
+    "NFR1"
+  ],
+  "coverage": [
+    {
+      "id": "FR1.3",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/guest/guide/usePlaceChoices.ts"
+    },
+    {
+      "id": "FR4.1",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/guest/guide/usePlaceChoices.ts"
+    },
+    {
+      "id": "FR6.2",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/guest/guide/PlaceCard.tsx"
+    },
+    {
+      "id": "FR7.2",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/guest/guide/PlacesFilterBar.tsx"
+    },
+    {
+      "id": "FR7.4",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/guest/guide/PlacesResultLine.tsx"
+    },
+    {
+      "id": "FR8.3",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/guest/guide/PlacesPanel.tsx"
+    },
+    {
+      "id": "NFR1",
+      "status": "OK",
+      "target": "guestguideiq-frontend/src/guest/guide/guestPlaces.scenarios.test.tsx"
+    }
+  ],
+  "reverse": []
+}
